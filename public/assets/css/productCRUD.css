@@ -1,0 +1,138 @@
+/* General body styling (if not already defined elsewhere) */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f2f5; /* Light gray background */
+    margin: 0;
+    padding: 0;
+}
+
+/* Styles for the main content area (where the form resides) */
+.main-content {
+    padding: 20px; /* Add some padding around the main content */
+}
+
+/* Styles for the form container */
+.div-deg {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    margin: 30px auto; /* Center the form and add vertical margin */
+    max-width: 800px; /* Make the form wider */
+    width: 90%; /* Ensure it's responsive on smaller screens */
+    box-sizing: border-box; /* Include padding in width calculation */
+}
+
+/* Styles for form labels and inputs */
+.div-deg label {
+    display: block; /* Make labels take full width */
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #333;
+    font-size: 15px;
+}
+
+.div-deg input[type="text"],
+.div-deg input[type="number"],
+.div-deg input[type="file"],
+.div-deg select {
+    width: calc(100% - 22px); /* Full width minus padding and border */
+    padding: 10px;
+    margin-bottom: 20px; /* Space below each input field */
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 15px;
+    box-sizing: border-box; /* Include padding in width */
+}
+
+.div-deg input[type="text"]:focus,
+.div-deg input[type="number"]:focus,
+.div-deg input[type="file"]:focus,
+.div-deg select:focus,
+textarea:focus { /* Also for textarea */
+    border-color: #007bff;
+    outline: none;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Specific styling for select dropdowns */
+.div-deg select {
+    height: 40px; /* Consistent height for select */
+}
+
+/* CKEditor textarea styling */
+/* The div containing the CKEditor instance */
+.div-deg > div:has(textarea[name="productDescription"]) {
+    margin-bottom: 30px; /* Add space below CKEditor */
+}
+
+/* Ensure CKEditor's content area is visible and readable */
+.ck-editor__editable_inline {
+    min-height: 300px; /* Set a good height for the editor */
+    border: 1px solid #ddd; /* Add a border to the editor area */
+    border-radius: 5px;
+    padding: 15px;
+    background-color: #fff; /* Ensure white background */
+    color: #333; /* Ensure dark text color */
+}
+
+/* Important: Override any conflicting global styles for CKEditor content */
+.ck-content {
+    color: #333 !important; /* Ensure text inside editor is dark */
+    background-color: #fff !important; /* Ensure background inside editor is white */
+}
+
+
+/* Styles for the submit button container */
+.button {
+    text-align: center; /* Center the button */
+    margin-top: 20px; /* Add space above the button */
+}
+
+.button .btn-success {
+    background-color: #28a745; /* Green color for success button */
+    color: #fff;
+    padding: 12px 30px;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.button .btn-success:hover {
+    background-color: #218838;
+}
+
+/* Back button style */
+.div-deg .btn-info {
+    background-color: #17a2b8;
+    color: #fff;
+    padding: 8px 15px;
+    border: none;
+    border-radius: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-bottom: 20px; /* Space below the back button */
+}
+
+.div-deg .btn-info:hover {
+    background-color: #138496;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .div-deg {
+        padding: 20px;
+        margin: 20px auto;
+        max-width: 95%;
+    }
+
+    .div-deg input[type="text"],
+    .div-deg input[type="number"],
+    .div-deg input[type="file"],
+    .div-deg select {
+        width: 100%; /* Full width on smaller screens */
+    }
+}

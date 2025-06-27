@@ -1,0 +1,155 @@
+/* General styling for the order page container */
+.container.mt-5 {
+    padding: 20px;
+    background-color: #f8f9fa; /* Nền sáng cho container */
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 50px; /* Thêm khoảng cách dưới cùng */
+}
+
+/* Heading styling */
+h1 {
+    color: #343a40; /* Màu chữ đậm cho tiêu đề */
+    margin-bottom: 30px;
+    font-size: 2.5rem;
+    font-weight: 600;
+    text-align: center; /* Đảm bảo tiêu đề căn giữa */
+}
+
+/* Table styling */
+.table-responsive {
+    margin-top: 20px;
+    overflow-x: auto; /* Đảm bảo bảng cuộn ngang trên màn hình nhỏ */
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+    border-collapse: collapse;
+    min-width: 600px; /* Đảm bảo bảng có chiều rộng tối thiểu trên màn hình nhỏ */
+}
+
+.table th,
+.table td {
+    padding: 0.75rem;
+    vertical-align: middle; /* Căn giữa theo chiều dọc */
+    border-top: 1px solid #dee2e6;
+    text-align: center; /* Căn giữa nội dung trong ô */
+}
+
+.table thead th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #dee2e6;
+    background-color: #343a40; /* Nền tối cho tiêu đề bảng */
+    color: #fff; /* Chữ trắng cho tiêu đề bảng */
+    font-weight: bold;
+    white-space: nowrap; /* Ngăn không cho văn bản xuống dòng trong tiêu đề */
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.03); /* Hiệu ứng sọc nhẹ */
+}
+
+.table-bordered th,
+.table-bordered td {
+    border: 1px solid #dee2e6; /* Thêm đường viền cho tất cả các ô */
+}
+
+/* Action button styling */
+.btn-info {
+    background-color: #17a2b8; /* Màu xanh của Bootstrap info */
+    border-color: #17a2b8;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    text-decoration: none; /* Loại bỏ gạch chân cho liên kết */
+}
+
+.btn-info:hover {
+    background-color: #138496; /* Màu đậm hơn khi di chuột */
+    border-color: #138496;
+    color: #fff;
+}
+
+/* Pagination styling */
+.pagination {
+    margin-top: 30px;
+    display: flex;
+    justify-content: center; /* Căn giữa các liên kết phân trang */
+    padding: 0;
+    list-style: none;
+}
+
+.pagination .page-item .page-link {
+    color: #007bff;
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    margin: 0 4px;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: #fff;
+}
+
+.pagination .page-item.disabled .page-link {
+    color: #6c757d;
+    pointer-events: none;
+    background-color: #e9ecef;
+    border-color: #dee2e6;
+}
+
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    h1 {
+        font-size: 2rem;
+    }
+
+    .table thead {
+        display: none; /* Ẩn tiêu đề bảng trên màn hình nhỏ */
+    }
+
+    .table, .table tbody, .table tr, .table td {
+        display: block; /* Biến các phần tử bảng thành block-level */
+        width: 100%;
+    }
+
+    .table tr {
+        margin-bottom: 15px;
+        border: 1px solid #dee2e6;
+        border-radius: 5px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        padding: 10px; /* Thêm padding cho mỗi hàng */
+    }
+
+    .table td {
+        text-align: right;
+        padding-left: 50%; /* Tạo không gian cho nhãn */
+        position: relative;
+        border: none; /* Loại bỏ đường viền giữa các ô trong cùng một hàng */
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    .table td::before {
+        content: attr(data-label); /* Sử dụng thuộc tính data-label làm nội dung */
+        position: absolute;
+        left: 10px;
+        width: calc(50% - 20px);
+        padding-right: 10px;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: bold;
+        color: #495057;
+    }
+
+    .table td:last-child {
+        border-bottom: none; /* Loại bỏ đường viền dưới cùng của ô cuối cùng */
+    }
+}

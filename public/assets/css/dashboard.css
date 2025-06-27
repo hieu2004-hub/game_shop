@@ -1,0 +1,23 @@
+/* Custom CSS for Dashboard Enhancements */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh; /* Ensure body takes full viewport height */
+}
+main.main-content {
+    flex: 1; /* Allows main to grow and push footer down */
+}
+
+/* Adjust chart card header for better prominence */
+.card-header.p-3 h6 {
+    font-size: 1.25rem; /* Slightly larger font size */
+    font-weight: 600; /* Bolder font weight */
+    color: #344767; /* A common dark text color in Material Dashboard */
+    text-align: center; /* Center the chart title */
+}
+
+/* Ensure chart canvas takes full width and has a defined height */
+.chart-canvas {
+    width: 100% !important;
+    height: 300px; /* You can adjust this height as needed */
+}

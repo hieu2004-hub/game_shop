@@ -1,0 +1,17 @@
+/* Tùy chỉnh nhỏ nếu cần cho ảnh hoặc các thành phần khác */
+.table th, .table td {
+    vertical-align: middle;
+    text-align: center;
+}
+.action-buttons {
+    display: flex;
+    justify-content: center; /* Căn giữa các nút */
+    gap: 5px; /* Khoảng cách giữa các nút */
+}
+
+/* FIX: Đảm bảo viền cho hàng cuối cùng và cạnh bảng */
+.table-bordered tbody tr:last-child td {
+    border-bottom: 1px solid #dee2e6 !important;
+    border-right: 1px solid #dee2e6 !important;
+    border-left: 1px solid #dee2e6 !important;
+}

@@ -1,0 +1,85 @@
+.form-container {
+    padding: 30px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    margin: 50px auto;
+    max-width: 700px;
+}
+.form-container h2 {
+    margin-bottom: 30px;
+    color: #333;
+    text-align: center;
+}
+.form-group {
+    margin-bottom: 20px;
+    position: relative; /* Thêm để định vị kết quả tìm kiếm */
+}
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+    color: #555;
+}
+.form-control {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+.btn-submit {
+    width: 100%;
+    padding: 12px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.btn-submit:hover {
+    background-color: #0056b3;
+}
+.alert-danger {
+    color: #721c24;
+    background-color: #f8d7da;
+    border-color: #f5c6cb;
+    padding: 10px;
+    margin-bottom: 20px;
+    border-radius: 5px;
+}
+select.form-control {
+    height: auto;
+    padding: 9px;
+}
+/* Style cho autocomplete results */
+#product_search_results {
+    border: 1px solid #ddd;
+    max-height: 200px;
+    overflow-y: auto;
+    position: absolute;
+    z-index: 1000;
+    background-color: #fff;
+    width: 100%; /* Đảm bảo chiều rộng bằng input */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border-radius: 5px;
+    top: 100%; /* Đặt ngay dưới input */
+    left: 0;
+}
+#product_search_results div {
+    padding: 10px;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+}
+#product_search_results div:hover {
+    background-color: #f0f0f0;
+}
+#product_search_results div:last-child {
+    border-bottom: none;
+}
+/* CSS để khắc phục lỗi gạch ngang */
+#product_search {
+    text-decoration: none !important; /* Ghi đè mọi text-decoration */
+}

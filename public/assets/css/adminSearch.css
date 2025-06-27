@@ -1,0 +1,45 @@
+/* Container cho thanh tìm kiếm và nút */
+.input-group {
+    display: flex; /* Sử dụng flexbox để các phần tử nằm trên một hàng */
+    align-items: center; /* Căn chỉnh các phần tử theo chiều dọc */
+    gap: 10px; /* TẠO KHOẢNG CÁCH GIỮA INPUT VÀ BUTTON */
+
+    /* Các thuộc tính khác để tạo kiểu dáng giống hình ảnh */
+    max-width: 600px; /* Chiều rộng tối đa của thanh tìm kiếm */
+    margin: 20px auto; /* Căn giữa và tạo khoảng cách trên/dưới */
+    padding: 5px; /* Khoảng đệm bên trong container */
+    background-color: #fff; /* Nền trắng cho container */
+    border-radius: 5px; /* Bo góc nhẹ cho container */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); /* Đổ bóng nhẹ */
+    border: 1px solid #e0e0e0; /* Đường viền nhẹ cho container */
+}
+
+/* Thanh input tìm kiếm */
+.input-group .form-control {
+    flex-grow: 1; /* Cho phép input chiếm hết không gian còn lại */
+    padding: 10px 15px; /* Khoảng đệm bên trong input */
+    border: none; /* Xóa đường viền mặc định của input */
+    border-radius: 3px; /* Bo góc cho input */
+    font-size: 1em;
+    outline: none; /* Xóa viền khi focus */
+    color: #333;
+}
+
+/* Nút tìm kiếm */
+.input-group button[type="submit"] {
+    /* Đảm bảo nút hiển thị, ghi đè class 'hidden' nếu cần */
+    display: block;
+
+    padding: 10px 20px; /* Khoảng đệm bên trong nút */
+    background-color: #f0f0f0; /* Màu nền của nút (giống hình ảnh) */
+    border: 1px solid #ccc; /* Đường viền của nút */
+    border-radius: 3px; /* Bo góc cho nút */
+    cursor: pointer; /* Thay đổi con trỏ khi di chuột qua */
+    font-size: 1em;
+    color: #333; /* Màu chữ của nút */
+    transition: background-color 0.3s ease; /* Hiệu ứng chuyển động khi hover */
+}
+
+.input-group button[type="submit"]:hover {
+    background-color: #e0e0e0; /* Màu nền khi hover */
+}

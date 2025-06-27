@@ -1,0 +1,109 @@
+/* CSS tùy chỉnh cho các dropdown trong sidebar */
+/* Đảm bảo các dropdown hiển thị chính xác trong sidebar dọc */
+.sidenav .nav-item.dropdown .dropdown-menu {
+    display: none; /* Mặc định ẩn */
+    position: absolute; /* Định vị tương đối với nav-item cha */
+    left: 100%; /* Đặt nó bên cạnh liên kết cha */
+    top: 0;
+    min-width: 150px; /* Điều chỉnh theo nhu cầu */
+    z-index: 1000; /* Đảm bảo nó nằm trên các nội dung khác */
+    background-color: #fff; /* Hoặc khớp với màu nền sidebar của bạn */
+    border: 1px solid rgba(0,0,0,.15);
+    border-radius: .25rem;
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.175);
+    list-style: none; /* Xóa dấu đầu dòng */
+    padding: .5rem 0;
+    margin: 0;
+}
+
+/* Hiển thị dropdown khi di chuột qua (cho máy tính để bàn) */
+.sidenav .nav-item.dropdown:hover .dropdown-menu {
+    display: block;
+}
+
+/* Đối với click/chạm, Bootstrap JS sẽ thêm class 'show' */
+.sidenav .nav-item.dropdown.show .dropdown-menu {
+    display: block;
+}
+
+.sidenav .nav-item.dropdown .dropdown-item {
+    display: block;
+    width: 100%;
+    padding: .5rem 1.5rem; /* Điều chỉnh padding để dễ click hơn */
+    clear: both;
+    font-weight: 400;
+    color: #212529;
+    text-align: inherit;
+    white-space: nowrap;
+    background-color: transparent;
+    border: 0;
+    text-decoration: none;
+}
+
+.sidenav .nav-item.dropdown .dropdown-item:hover,
+.sidenav .nav-item.dropdown .dropdown-item:focus {
+    color: #16181b;
+    text-decoration: none;
+    background-color: #f8f9fa;
+}
+
+/* Điều chỉnh cho nav-link chính để phù hợp với mũi tên dropdown */
+.sidenav .nav-link.dropdown-toggle {
+    display: flex; /* Giữ icon và văn bản thẳng hàng */
+    align-items: center;
+    justify-content: flex-start; /* Căn chỉnh nội dung về phía đầu */
+    padding-right: 1rem; /* Thêm khoảng trống cho caret */
+}
+
+/* Thêm mũi tên (caret) vào các nút bật tắt dropdown nếu framework chưa có */
+.sidenav .nav-link.dropdown-toggle::after {
+    display: inline-block;
+    margin-left: auto; /* Đẩy caret sang phải */
+    vertical-align: .255em;
+    content: "";
+    border-top: .3em solid;
+    border-right: .3em solid transparent;
+    border-bottom: 0;
+    border-left: .3em solid transparent;
+    transition: transform .2s ease-in-out; /* Chuyển động xoay mượt mà */
+}
+
+/* Xoay caret khi dropdown mở */
+.sidenav .nav-link.dropdown-toggle[aria-expanded="true"]::after {
+    transform: rotate(0deg); /* Hướng xuống khi mở */
+    border-top: 0;
+    border-right: .3em solid transparent;
+    border-bottom: .3em solid;
+    border-left: .3em solid transparent;
+}
+
+/* Để nav-item cha định vị dropdown chính xác */
+.sidenav .nav-item.dropdown {
+    position: relative;
+}
+
+/* Điều chỉnh responsive cho màn hình nhỏ hơn */
+@media (max-width: 1199.98px) { /* Điều chỉnh breakpoint theo framework của bạn (xs/sm/md) */
+    .sidenav .nav-item.dropdown .dropdown-menu {
+        position: static; /* Xếp chồng các mục dropdown theo chiều dọc */
+        left: 0;
+        top: auto;
+        width: 100%;
+        border: none;
+        box-shadow: none;
+        padding-left: 2rem; /* Thụt lề các mục dropdown */
+        background-color: transparent; /* Khớp màu nền với cha */
+    }
+
+    .sidenav .nav-item.dropdown:hover .dropdown-menu {
+        display: none; /* Tắt hiệu ứng di chuột trên màn hình nhỏ */
+    }
+
+    .sidenav .nav-link.dropdown-toggle::after {
+        transform: rotate(-90deg); /* Hướng sang phải khi đóng */
+    }
+
+    .sidenav .nav-link.dropdown-toggle[aria-expanded="true"]::after {
+        transform: rotate(0deg); /* Hướng xuống khi mở */
+    }
+}

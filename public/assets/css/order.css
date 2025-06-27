@@ -1,0 +1,31 @@
+.container {
+    margin-top: 2rem;
+}
+
+.table {
+    border-radius: 0.5rem;
+    overflow: hidden; /* To prevent border radius on the table */
+}
+
+.table th, .table td {
+    vertical-align: middle;
+    text-align: center;
+}
+
+.table th {
+    background-color: #343a40; /* Dark background for header */
+    color: white; /* White text */
+}
+
+.btn-info {
+    background-color: #17a2b8; /* Bootstrap info color */
+    border: none; /* Remove border */
+}
+
+.btn-info:hover {
+    background-color: #138496; /* Darker on hover */
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: #f9f9f9; /* Light gray for odd rows */
+}

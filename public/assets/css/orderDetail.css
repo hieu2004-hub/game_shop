@@ -1,0 +1,365 @@
+/* General Body and Main Layout */
+body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    background-color: #ffffff; /* Light gray background */
+    color: #333;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+main.main-content {
+    padding: 50px 0;
+}
+
+.order-detail-container {
+    max-width: 1000px; /* Adjust max width as needed */
+    margin: 0 auto;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    padding: 40px;
+}
+
+/* Order Header */
+.order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.order-header .back-link {
+    display: inline-flex;
+    align-items: center;
+    color: #ffb300;
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1.1rem;
+    transition: color 0.2s ease;
+}
+
+.order-header .back-link:hover {
+    color: #d49500;
+    text-decoration: underline;
+}
+
+.order-header .back-link i {
+    margin-right: 8px;
+}
+
+.order-header .order-info {
+    font-size: 1.1rem;
+    color: #555;
+}
+
+.order-header .order-info strong {
+    color: #212529;
+    font-weight: 600;
+}
+
+/* Status Badge */
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #fff;
+    margin-left: 10px;
+}
+
+.status-badge.pending { background-color: #ffc107; } /* Warning yellow */
+.status-badge.confirmed { background-color: #17a2b8; } /* Info cyan */
+.status-badge.cancelled { background-color: #dc3545; } /* Danger red */
+.status-badge.received { background-color: #28a745; } /* Success green */
+/* Add more classes for other statuses as needed */
+
+.divider {
+    border: none;
+    border-top: 1px solid #eee;
+    margin: 25px 0;
+}
+
+/* Customer Info Section */
+.customer-info-section {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding: 25px;
+    margin-bottom: 30px;
+}
+
+.customer-info-section h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 10px;
+}
+
+.customer-info-section p {
+    font-size: 1rem;
+    color: #555;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px; /* NEW: Add gap for spacing between flex items */
+}
+
+.customer-info-section p i {
+    /* margin-right: 10px; */ /* REMOVED: gap will handle this */
+    color: #ffb300; /* Icon color */
+}
+
+.customer-info-section p strong {
+    color: #333;
+}
+
+/* Product List Table */
+.product-list-section h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 20px;
+}
+
+.product-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    margin-bottom: 30px;
+}
+
+.product-table thead {
+    background-color: #ffb300;
+    color: #fff;
+}
+
+.product-table th,
+.product-table td {
+    padding: 15px;
+    text-align: center;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.product-table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
+
+.product-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.product-table img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    border-radius: 4px;
+    border: 1px solid #eee;
+}
+
+.product-table tfoot {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+.product-table tfoot .total-label {
+    text-align: right;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.product-table tfoot .total-amount {
+    font-size: 1.2rem;
+    color: #333; /* Changed to dark gray for consistency */
+}
+
+/* Warranty Details */
+.warranty-details-row td {
+    background-color: #fcfdff; /* Lighter background for warranty row */
+    border-top: 1px dashed #e0e0e0; /* Dashed border for separation */
+    padding-top: 10px;
+    padding-bottom: 10px;
+    text-align: left !important; /* Override center alignment */
+}
+
+.warranty-details-content {
+    margin-left: 20px;
+    border-left: 3px solid #007bff; /* Blue border on left */
+    padding-left: 15px;
+    font-size: 0.95rem;
+    color: #555;
+}
+
+.warranty-details-content strong {
+    color: #333;
+}
+
+.warranty-details-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.warranty-details-content ul li {
+    margin-bottom: 5px;
+}
+
+.warranty-details-content .icon-warranty {
+    margin-right: 8px;
+    color: #28a745; /* Green for warranty support */
+}
+
+.warranty-details-content .icon-no-warranty {
+    margin-right: 8px;
+    color: #dc3545; /* Red for no warranty */
+}
+
+/* Order Actions (Buttons) */
+.order-actions {
+    display: flex;
+    justify-content: flex-end; /* Align buttons to the right */
+    gap: 15px;
+    margin-top: 30px;
+}
+
+.order-actions .btn {
+    padding: 12px 25px;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.order-actions .btn-danger {
+    background-color: #dc3545;
+    color: #fff;
+    border: none;
+}
+
+.order-actions .btn-danger:hover {
+    background-color: #bd2130;
+    transform: translateY(-2px);
+}
+
+.order-actions .btn-success {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+}
+
+.order-actions .btn-success:hover {
+    background-color: #218838;
+    transform: translateY(-2px);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .order-detail-container {
+        padding: 20px;
+        margin: 0 10px;
+    }
+    .order-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .order-header .order-info {
+        font-size: 1rem;
+    }
+    .customer-info-section {
+        padding: 15px;
+    }
+    .customer-info-section p {
+        font-size: 0.95rem;
+    }
+
+    .product-table, .product-table tbody, .product-table tr, .product-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .product-table thead {
+        display: none; /* Hide table headers on small screens */
+    }
+
+    .product-table tr {
+        margin-bottom: 15px;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .product-table td {
+        text-align: right !important;
+        padding-left: 50%;
+        position: relative;
+        border: none;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .product-table td:last-child {
+        border-bottom: none;
+    }
+
+    .product-table td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 15px;
+        width: calc(50% - 30px);
+        padding-right: 10px;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: 600;
+        color: #555;
+    }
+
+    /* Specific data-labels for product table */
+    .product-table td:nth-of-type(1):before { content: "Sản phẩm:"; }
+    .product-table td:nth-of-type(2):before { content: "Ảnh:"; }
+    .product-table td:nth-of-type(3):before { content: "Đơn giá:"; }
+    .product-table td:nth-of-type(4):before { content: "Số lượng:"; }
+    .product-table td:nth-of-type(5):before { content: "Tổng giá:"; }
+
+    .product-table tfoot td {
+        text-align: center !important;
+        display: block;
+        width: 100%;
+        border-top: 1px solid #e9ecef;
+    }
+
+    .product-table tfoot .total-label {
+        text-align: right !important;
+    }
+
+    .warranty-details-row td {
+        text-align: left !important; /* Ensure warranty details are left-aligned */
+        padding-left: 15px; /* Adjust padding */
+    }
+    .warranty-details-content {
+        margin-left: 0; /* Remove margin on small screens */
+    }
+
+    .order-actions {
+        flex-direction: column;
+        align-items: center;
+    }
+    .order-actions .btn {
+        width: 100%;
+        max-width: 300px;
+    }
+}

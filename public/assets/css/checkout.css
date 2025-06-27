@@ -1,0 +1,398 @@
+body {
+    font-family: -apple-system, BlinkMacMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    background-color: #ffffff; /* Light gray background */
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+/* Main wrapper for the entire checkout page */
+.checkout-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+    min-height: 100vh;
+    box-sizing: border-box;
+}
+
+/* Main container for the two columns */
+.checkout-container {
+    display: flex;
+    flex-wrap: wrap; /* Allow columns to wrap on smaller screens */
+    width: 100%;
+    max-width: 1100px; /* Tăng max-width của toàn bộ container để có nhiều không gian hơn */
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    overflow: hidden; /* Ensures border-radius is applied correctly */
+}
+
+/* Left Column Styles (Thông tin người dùng) */
+.checkout-left {
+    flex: 2; /* Chiếm 2/3 không gian */
+    min-width: 500px; /* Tăng min-width cho cột trái để form rộng hơn */
+    padding: 40px;
+    box-sizing: border-box;
+}
+
+.checkout-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+}
+
+.checkout-header .logo {
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0;
+    color: #333;
+}
+
+.checkout-header .continue-shopping {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.checkout-header .continue-shopping:hover {
+    text-decoration: underline;
+}
+
+
+.checkout-section:last-of-type {
+    border-bottom: none; /* No border for the last section */
+    margin-bottom: 20px; /* Adjust margin for the last section */
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.section-number {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: #007bff;
+    color: #fff;
+    font-weight: bold;
+    font-size: 14px;
+    margin-right: 15px;
+}
+
+.section-header h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    flex-grow: 1; /* Allows it to take available space */
+}
+
+.edit-link {
+    color: #007bff;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.edit-link:hover {
+    text-decoration: underline;
+}
+
+/* Form Group Styles */
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #555;
+}
+
+.form-group input[type="text"],
+.form-group input[type="tel"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 16px;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease-in-out;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="tel"]:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* Continue button */
+.continue-button-container {
+    padding-top: 20px;
+    text-align: right; /* Align button to the right */
+}
+
+.continue-button-container .btn-primary {
+    background-color: #333; /* Dark button color */
+    color: #fff;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+    width: auto; /* Allow button to size to content */
+}
+
+.continue-button-container .btn-primary:hover {
+    background-color: #555;
+}
+
+/* Right Column Styles (Tóm tắt đơn hàng) */
+.checkout-right {
+    flex: 1; /* Chiếm 1/3 không gian */
+    min-width: 400px; /* Tăng min-width cho cột phải để thông tin sản phẩm không bị cắt */
+    padding: 40px;
+    box-sizing: border-box;
+    background-color: #f9f9f9; /* Slightly different background */
+    border-left: 1px solid #eee; /* Border trái để phân tách cột */
+}
+
+.order-summary-box {
+    background-color: #fff;
+    border-radius: 8px;
+    padding: 25px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.order-summary-box h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-top: 0;
+    margin-bottom: 25px;
+    text-align: left; /* Căn trái theo hình mẫu Luu */
+}
+
+/* Styling cho danh sách sản phẩm trong tóm tắt */
+.summary-product-list {
+    margin-bottom: 20px;
+}
+
+.summary-product-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 0;
+    border-bottom: 1px solid #eee; /* Đường kẻ phân cách giữa các sản phẩm */
+}
+
+.summary-product-item:last-child {
+    border-bottom: none; /* Không có đường kẻ cho sản phẩm cuối cùng */
+}
+
+.summary-product-item .item-image {
+    width: 60px; /* Kích thước ảnh nhỏ hơn, phù hợp với hình mẫu Luu */
+    height: 60px;
+    object-fit: cover;
+    border-radius: 4px;
+    margin-right: 15px;
+    flex-shrink: 0; /* Ngăn ảnh co lại */
+}
+
+.summary-product-item .item-info {
+    flex-grow: 1; /* Cho phép tên và số lượng chiếm không gian còn lại */
+    display: flex;
+    flex-direction: column;
+    /* Đảm bảo text wrap */
+    word-break: break-word; /* Cho phép ngắt từ nếu từ quá dài */
+    overflow-wrap: break-word; /* Tương tự word-break */
+}
+
+.summary-product-item .item-name {
+    font-weight: 600;
+    font-size: 15px;
+    margin-bottom: 5px;
+}
+
+.summary-product-item .item-quantity {
+    font-size: 13px;
+    color: #777;
+}
+
+.summary-product-item .item-price {
+    font-weight: 600;
+    font-size: 15px;
+    margin-left: 15px; /* Khoảng cách giữa thông tin và giá */
+    flex-shrink: 0; /* Ngăn giá co lại */
+    text-align: right; /* Căn phải giá */
+}
+
+/* Styling cho nút xóa (nếu bạn quyết định thêm vào) */
+.summary-product-item .remove-item-btn {
+    margin-left: 15px;
+    font-size: 20px;
+    color: #ccc;
+    text-decoration: none;
+    transition: color 0.2s ease-in-out;
+}
+
+.summary-product-item .remove-item-btn:hover {
+    color: #f00;
+}
+
+/* Phần tổng cộng */
+.summary-totals {
+    margin-top: 25px;
+    padding-top: 25px;
+    border-top: 1px solid #eee;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    font-size: 15px;
+}
+
+.total-row span:first-child {
+    color: #555;
+}
+
+.total-row span:last-child {
+    font-weight: 500;
+}
+
+.grand-total-row {
+    font-size: 18px;
+    font-weight: bold;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+    margin-top: 15px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 992px) {
+    .checkout-left,
+    .checkout-right {
+        flex: 1 1 100%; /* Xếp chồng các cột theo chiều dọc */
+        min-width: unset; /* Bỏ ràng buộc min-width */
+        border-right: none; /* Bỏ border phải */
+        padding: 30px;
+    }
+
+    .checkout-right {
+        border-top: 1px solid #eee; /* Thêm border trên giữa các cột đã xếp chồng */
+        border-left: none; /* Bỏ border trái */
+    }
+
+    .checkout-header {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .checkout-header .continue-shopping {
+        margin-top: 15px;
+    }
+}
+
+@media (max-width: 576px) {
+    .checkout-left,
+    .checkout-right {
+        padding: 20px;
+    }
+
+    .checkout-header {
+        margin-bottom: 30px;
+    }
+
+    .checkout-section {
+        margin-bottom: 30px;
+    }
+
+    .form-group input[type="text"],
+    .form-group input[type="tel"],
+    .continue-button-container .btn-primary {
+        font-size: 14px;
+        padding: 10px 12px;
+    }
+
+    .section-header h2 {
+        font-size: 16px;
+    }
+
+    .order-summary-box h3 {
+        font-size: 18px;
+    }
+
+    .summary-product-item .item-image {
+        width: 50px;
+        height: 50px;
+    }
+}
+
+
+
+/* Thêm CSS cho các mục mới vào đây hoặc trong checkout.css */
+.checkout-section h3 {
+    margin-top: 20px;
+    margin-bottom: 15px;
+    font-size: 1.2em;
+    color: #333;
+}
+
+.options-group {
+    display: flex;
+    flex-direction: column; /* Xếp chồng các radio button theo chiều dọc */
+    gap: 10px; /* Khoảng cách giữa các lựa chọn */
+    margin-bottom: 20px; /* Khoảng cách dưới cùng của nhóm tùy chọn */
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    transition: background-color 0.2s ease;
+}
+
+.radio-label:hover {
+    background-color: #f9f9f9;
+}
+
+.radio-label input[type="radio"] {
+    margin-right: 10px;
+    /* Tùy chỉnh kiểu radio button */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border: 2px solid #ccc;
+    border-radius: 50%;
+    outline: none;
+    cursor: pointer;
+    position: relative;
+}
+
+.radio-label input[type="radio"]:checked {
+    border-color: #007bff; /* Màu chính */
+}
+
+.radio-label input[type="radio"]:checked::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background-color: #007bff; /* Màu chính */
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}

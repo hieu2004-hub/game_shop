@@ -1,0 +1,128 @@
+body {
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+    background-color: #ffffff; /* Light gray background */
+    display: flex;
+    flex-direction: column; /* Stack header, main, footer vertically */
+    min-height: 100vh; /* Ensure body takes full viewport height */
+    margin: 0;
+    color: #333;
+}
+
+main {
+    flex-grow: 1; /* Main content takes all available space */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 30px 0; /* Add some vertical padding */
+}
+
+.thank-you-container {
+    background-color: #fff;
+    padding: 50px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); /* More pronounced shadow */
+    text-align: center;
+    max-width: 700px; /* Slightly wider container */
+    width: 90%;
+    border: 1px solid #e0e0e0; /* Subtle border */
+}
+
+.thank-you-container .icon-success {
+    color: #28a745; /* Green for success */
+    font-size: 5rem; /* Large icon */
+    margin-bottom: 25px;
+    animation: bounceIn 0.8s ease-out; /* Simple entry animation */
+}
+
+.thank-you-container h1 {
+    color: #212529; /* Darker, more prominent heading */
+    font-size: 2.8em; /* Larger font size */
+    font-weight: 700;
+    margin-bottom: 20px;
+    line-height: 1.2;
+}
+
+.thank-you-container p {
+    color: #555;
+    font-size: 1.2em; /* Slightly larger paragraph text */
+    line-height: 1.7;
+    margin-bottom: 30px;
+    max-width: 550px; /* Limit paragraph width for readability */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+    justify-content: center;
+    gap: 15px; /* Space between buttons */
+    margin-top: 20px;
+}
+
+.thank-you-container .btn {
+    display: inline-block;
+    background-color: #007bff; /* Primary blue */
+    color: white;
+    padding: 15px 30px; /* Larger padding */
+    border-radius: 8px; /* More rounded corners */
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.1em;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2); /* Subtle shadow for buttons */
+}
+
+.thank-you-container .btn:hover {
+    background-color: #0056b3;
+    transform: translateY(-3px); /* Lift effect on hover */
+    box-shadow: 0 6px 15px rgba(0, 123, 255, 0.3);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .thank-you-container {
+        padding: 30px;
+    }
+    .thank-you-container h1 {
+        font-size: 2.2em;
+    }
+    .thank-you-container p {
+        font-size: 1em;
+    }
+    .button-group {
+        flex-direction: column; /* Stack buttons vertically on small screens */
+        align-items: center;
+    }
+    .thank-you-container .btn {
+        width: 100%; /* Full width buttons */
+        max-width: 300px; /* Limit max width for stacked buttons */
+    }
+}
+
+@media (max-width: 480px) {
+    .thank-you-container {
+        padding: 20px;
+    }
+    .thank-you-container h1 {
+        font-size: 1.8em;
+    }
+    .thank-you-container .icon-success {
+        font-size: 4rem;
+    }
+}
+
+/* Keyframe for bounceIn animation */
+@keyframes bounceIn {
+    0% {
+        transform: scale(0.1);
+        opacity: 0;
+    }
+    60% {
+        transform: scale(1.1);
+        opacity: 1;
+    }
+    100% {
+        transform: scale(1);
+    }
+}

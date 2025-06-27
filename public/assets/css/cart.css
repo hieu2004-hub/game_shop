@@ -1,0 +1,130 @@
+/* public/assets/css/my-orders.css */
+
+.my-orders-container {
+    max-width: 960px;
+    margin: 2rem auto;
+    padding: 0 15px;
+    font-family: 'Poppins', sans-serif;
+}
+
+.page-title {
+    font-size: 2rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: #333;
+}
+
+.filter-bar {
+    display: flex;
+    justify-content: left;
+    margin-bottom: 2rem;
+}
+
+.filter-bar .form-select {
+    max-width: 300px;
+    border-radius: 25px;
+    padding: 0.5rem 1.5rem;
+    border: 1px solid #ddd;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.order-card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.order-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.order-card-header {
+    background-color: #f8f9fa;
+    padding: 1rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.order-id {
+    font-weight: 600;
+    color: #ffb300;
+}
+
+.order-status {
+    font-size: 0.9rem;
+    font-weight: 600;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    color: #fff;
+}
+
+/* Màu sắc cho các trạng thái */
+.status-cho-xu-ly { background-color: #ffc107; color: #333; }
+.status-da-xac-nhan { background-color: #17a2b8; }
+.status-da-nhan-duoc-hang { background-color: #28a745; }
+.status-huy-don-hang { background-color: #dc3545; }
+.status-thanh-toan-that-bai { background-color: #343a40; }
+
+
+.order-card-body {
+    padding: 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.order-info-item {
+    display: flex;
+    align-items: center;
+    font-size: 0.95rem;
+    color: #555;
+}
+
+.order-info-item i {
+    color: #ffb300;
+    margin-right: 10px;
+    width: 20px;
+    text-align: center;
+}
+
+.order-card-footer {
+    padding: 1rem 1.5rem;
+    background-color: #f8f9fa;
+    text-align: right;
+}
+
+.btn-view-details {
+    background-color: #ffb300;
+    color: white;
+    border-radius: 25px;
+    padding: 0.5rem 1.5rem;
+    text-decoration: none;
+    transition: background-color 0.2s;
+}
+
+.btn-view-details:hover {
+    background-color: #d89700;
+    color: white;
+}
+
+.empty-orders-message {
+    text-align: center;
+    padding: 3rem;
+    background: #f8f9fa;
+    border-radius: 12px;
+}
+
+.empty-orders-message h4 {
+    margin-bottom: 1rem;
+}
+
+.pagination {
+    justify-content: center;
+}

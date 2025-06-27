@@ -1,0 +1,30 @@
+/* Tùy chỉnh nhỏ nếu cần cho ảnh hoặc các thành phần khác */
+.table th, .table td {
+    vertical-align: middle;
+    text-align: center;
+}
+.action-buttons {
+    display: flex;
+    justify-content: center; /* Căn giữa các nút */
+    gap: 5px; /* Khoảng cách giữa các nút */
+}
+/* Đảm bảo các input trong modal có khoảng cách hợp lý */
+.modal-body .form-group label {
+    margin-bottom: 0.5rem;
+    font-weight: bold;
+}
+.modal-body .form-group input,
+.modal-body .form-group textarea {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #d1d3e2;
+    border-radius: 0.35rem;
+    box-sizing: border-box;
+}
+
+/* FIX: Đảm bảo viền cho hàng cuối cùng và cạnh bảng */
+.table-bordered tbody tr:last-child td {
+    border-bottom: 1px solid #dee2e6 !important;
+    border-right: 1px solid #dee2e6 !important;
+    border-left: 1px solid #dee2e6 !important;
+}

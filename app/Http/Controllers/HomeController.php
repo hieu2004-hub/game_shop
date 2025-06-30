@@ -200,60 +200,77 @@ class HomeController extends Controller
         return redirect()->back();
     }
 
-    public function checkout()
+    // SỬA PHƯƠNG THỨC NÀY
+    public function checkout(Request $request)
     {
-        $user = null;
-        $cartItems = collect();
-        $subtotal = 0;
-        $grandTotal = 0;
+        $user = Auth::user();
 
-        if (Auth::check()) {
-            $user = Auth::user();
-            // Eager load product và warehouseStocks của product để tính total_stock_quantity
-            $cartItems = Cart::where('userID', $user->id)->with('product.warehouseStocks')->get();
+        // 1. Lấy danh sách ID các item trong giỏ hàng đã được chọn từ request
+        $selectedCartItemIds = $request->query('selected_items', []);
 
-            foreach ($cartItems as $item) {
-                $subtotal += $item->quantity * $item->product->productPrice;
-            }
-            $grandTotal = $subtotal;
+        // 2. Nếu không có gì được chọn, quay lại giỏ hàng
+        if (empty($selectedCartItemIds)) {
+            toastr()->error('Vui lòng chọn sản phẩm trong giỏ hàng trước khi thanh toán.');
+            return redirect()->route('myCart');
         }
+
+        // 3. Chỉ lấy các item trong giỏ hàng có ID nằm trong danh sách được chọn
+        $cartItems = Cart::where('userID', $user->id)
+            ->whereIn('id', $selectedCartItemIds)
+            ->with('product.warehouseStocks')
+            ->get();
+
+        // 4. Kiểm tra phòng trường hợp người dùng sửa URL
+        if ($cartItems->isEmpty() || count($selectedCartItemIds) != $cartItems->count()) {
+            toastr()->error('Sản phẩm đã chọn không hợp lệ. Vui lòng thử lại.');
+            return redirect()->route('myCart');
+        }
+
+        // 5. Tính tổng tiền
+        $subtotal = 0;
+        foreach ($cartItems as $item) {
+            $subtotal += $item->quantity * $item->product->productPrice;
+        }
+        $grandTotal = $subtotal;
 
         return view('home.checkout', compact('user', 'cartItems', 'subtotal', 'grandTotal'));
     }
 
+    // SỬA PHƯƠNG THỨC NÀY
     public function confirmOrder(Request $request)
     {
-        // Validation vẫn giữ nguyên
         $request->validate([
             'name' => 'required|string|max:255',
             'address' => 'required|string|max:255',
             'phone' => 'required|string|max:20',
             'delivery_method' => 'required|in:Giao tận nơi,Đến cửa hàng nhận',
             'payment_method' => 'required|in:Tiền mặt,Thẻ ngân hàng/Ví điện tử',
+            // Thêm validation cho mảng ID ẩn
+            'selected_cart_item_ids' => 'required|array',
+            'selected_cart_item_ids.*' => 'exists:carts,id',
         ]);
 
         $userID = Auth::user()->id;
-        $cartItems = Cart::where('userID', $userID)->get();
+        $selectedCartItemIds = $request->input('selected_cart_item_ids');
+
+        // Lấy lại các mục trong giỏ hàng đã được chọn để xử lý
+        $cartItems = Cart::where('userID', $userID)->whereIn('id', $selectedCartItemIds)->get();
 
         // Kiểm tra tồn kho lần cuối
         foreach ($cartItems as $cartItem) {
             $product = Product::with('warehouseStocks')->find($cartItem->productID);
             if (!$product || $product->total_stock_quantity < $cartItem->quantity) {
-                toastr()->error('Không đủ hàng trong kho cho sản phẩm: ' . $product->productName . '. Vui lòng kiểm tra lại giỏ hàng.');
-                return redirect()->back();
+                toastr()->error('Không đủ hàng trong kho cho sản phẩm: ' . $product->productName);
+                return redirect()->route('myCart');
             }
         }
 
         $order = null;
-        $grandTotal = 0; // Tính tổng tiền
-
+        $grandTotal = 0;
 
         try {
-            // Bắt đầu transaction
             DB::transaction(function () use ($request, $userID, $cartItems, &$order, &$grandTotal) {
-                // Create a new order
-                // Tạo một ID duy nhất cho Momo
-                $momoOrderId = 'GAMESHOP' . time() . '_' . $userID;
+                // Tạo đơn hàng
                 $order = new Order;
                 $order->name = $request->name;
                 $order->address = $request->address;
@@ -261,35 +278,23 @@ class HomeController extends Controller
                 $order->userID = $userID;
                 $order->delivery_method = $request->delivery_method;
                 $order->payment_method = $request->payment_method;
-                $order->momo_order_id = $momoOrderId; // Lưu momo_order_id
+                $order->momo_order_id = 'GAMESHOP' . time() . '_' . $userID;
+                $order->status = 'Chờ Xử Lý';
+                $order->payment_status = ($request->payment_method == 'Tiền mặt') ? 'Chưa thanh toán' : 'Đã thanh toán';
+                $order->save();
 
-                // CẬP NHẬT LOGIC TRẠNG THÁI
-                $order->status = 'Chờ Xử Lý'; // Trạng thái xử lý luôn là Chờ Xử Lý
-                // Đặt trạng thái dựa trên phương thức thanh toán
-                if ($request->payment_method == 'Thẻ ngân hàng/Ví điện tử') {
-                    // Nếu thanh toán online, ta tạm ghi nhận là đã thanh toán.
-                    // Nếu callback thất bại, ta sẽ cập nhật lại sau.
-                    $order->payment_status = 'Đã thanh toán';
-                } else {
-                    $order->payment_status = 'Chưa thanh toán'; // COD thì là chưa thanh toán
-                }
-                $order->save(); // Lưu đơn hàng để có ID
-
-                // Lặp qua giỏ hàng để tạo order items và trừ kho
+                // Lặp qua các item đã chọn trong giỏ hàng
                 foreach ($cartItems as $cartItem) {
-                    $product = Product::with('warehouseStocks')->find($cartItem->productID);
+                    $product = Product::find($cartItem->productID);
                     $quantityToDeduct = $cartItem->quantity;
-
-                    // Tính tổng tiền
                     $grandTotal += $quantityToDeduct * $product->productPrice;
 
-                    // Logic trừ kho của bạn (giữ nguyên)
                     $availableStocks = ProductWarehouseStock::where('product_id', $product->id)
                         ->where('quantity', '>', 0)
                         ->orderBy('received_date', 'asc')
                         ->get();
                     $deductedQuantity = 0;
-                    // ... (toàn bộ logic trừ kho và tạo ProductInstance của bạn giữ nguyên)
+
                     foreach ($availableStocks as $stock) {
                         if ($deductedQuantity >= $quantityToDeduct)
                             break;
@@ -299,7 +304,6 @@ class HomeController extends Controller
 
                         $orderItem = new OrderItem;
                         $orderItem->orderID = $order->id;
-                        // ... (các trường còn lại của OrderItem)
                         $orderItem->productID = $product->id;
                         $orderItem->quantity = $canDeduct;
                         $orderItem->price = $product->productPrice;
@@ -313,15 +317,12 @@ class HomeController extends Controller
                         if ($product->is_warrantable) {
                             for ($i = 0; $i < $canDeduct; $i++) {
                                 ProductInstance::create([
-                                    //... (logic tạo ProductInstance giữ nguyên)
                                     'product_id' => $product->id,
                                     'order_item_id' => $orderItem->id,
                                     'user_id' => $userID,
                                     'serial_number' => 'SN-' . $product->id . '-' . uniqid(),
                                     'purchase_date' => Carbon::now(),
                                     'warranty_duration_months' => $product->default_warranty_months ?? 0,
-                                    'warranty_start_date' => null,
-                                    'warranty_end_date' => null,
                                     'warranty_status' => 'pending_activation',
                                     'notes' => 'Được mua trong đơn hàng #' . $order->id . ' - ' . $product->productName,
                                 ]);
@@ -329,38 +330,27 @@ class HomeController extends Controller
                         }
                     }
                 }
-                // Sau khi đã tạo đơn hàng, xóa giỏ hàng
-                Cart::where('userID', $userID)->delete();
+                // Xóa các item đã chọn khỏi giỏ hàng
+                Cart::where('userID', $userID)->whereIn('id', $cartItems->pluck('id'))->delete();
             });
         } catch (\Exception $e) {
             Log::error('Order creation failed: ' . $e->getMessage());
             toastr()->error('Đã xảy ra lỗi khi tạo đơn hàng. Vui lòng thử lại.');
-            return redirect()->route('checkout');
+            return redirect()->route('myCart');
         }
 
-        // Sau khi transaction thành công, quyết định hành động tiếp theo
         if ($request->payment_method == 'Thẻ ngân hàng/Ví điện tử') {
-            // Gọi PaymentController để tạo request thanh toán
             $paymentController = new PaymentController();
             $momoResponse = $paymentController->createMomoPaymentRequest($order->momo_order_id, $grandTotal, $order->id);
-            // THÊM DÒNG NÀY ĐỂ DEBUG
-            // dd($momoResponse);
-
             if (isset($momoResponse['payUrl'])) {
-                // Chuyển hướng đến cổng thanh toán Momo
                 return redirect()->to($momoResponse['payUrl']);
             } else {
-                Log::error('Momo Payment Creation Error:', is_array($momoResponse) ? $momoResponse : ['response' => $momoResponse]);
-                // Nếu không tạo được link thanh toán, hủy đơn hàng đã tạo
                 $order->status = 'Thanh toán thất bại';
-                $order->payment_status = 'Thanh toán thất bại';
                 $order->save();
-                // Logic hoàn kho có thể thêm ở đây nếu muốn
-                toastr()->error('Không thể tạo yêu cầu thanh toán. Đơn hàng đã được hủy. Vui lòng thử lại.');
-                return redirect()->route('checkout');
+                toastr()->error('Không thể tạo yêu cầu thanh toán. Vui lòng thử lại.');
+                return redirect()->route('myCart');
             }
         } else {
-            // Với thanh toán tiền mặt, chuyển đến trang cảm ơn như cũ
             toastr()->success('Sản phẩm đã được đặt hàng thành công!');
             return redirect()->route('thankYou');
         }

@@ -13,21 +13,32 @@
   </header>
 
   <main>
-    <div class="checkout-wrapper"> {{-- Wrapper chính cho toàn bộ trang checkout --}}
+    <div class="checkout-wrapper">
         <div class="checkout-container">
             {{-- Cột trái: Thông tin địa chỉ, giao hàng, thanh toán --}}
             <div class="checkout-left">
                 <div class="checkout-header">
-                    <h1 class="logo">Game Shop</h1> {{-- Tên thương hiệu --}}
-                    <a href="{{ url('/') }}" class="continue-shopping">Tiếp tục mua sắm &rarr;</a>
+                    <h1 class="logo">Game Shop</h1>
+                    <a href="{{ route('myCart') }}" class="continue-shopping">← Quay lại giỏ hàng</a>
                 </div>
 
                 {{-- Phần thông tin khách hàng và form --}}
                 <div class="checkout-section shipping-address">
                     <div class="section-content">
-                        <form action="{{ url('placeOrder') }}" method="POST" id="checkout-form">
+                        <!-- SỬA: Đổi action của form sang route 'placeOrder' -->
+                        <form action="{{ route('placeOrder') }}" method="POST" id="checkout-form">
                             @csrf
-                            {{-- <input type="hidden" name="total_momo" value="{{ $grandTotal }}"> --}}
+
+                            <!-- ====================================================== -->
+                            <!-- THÊM CÁC INPUT ẨN ĐỂ GỬI ID SẢN PHẨM ĐÃ CHỌN -->
+                            <!-- ====================================================== -->
+                            @if(isset($cartItems))
+                                @foreach($cartItems as $item)
+                                    <input type="hidden" name="selected_cart_item_ids[]" value="{{ $item->id }}">
+                                @endforeach
+                            @endif
+                            <!-- ====================================================== -->
+
                             <div class="form-group">
                                 <label for="name">Họ và tên:</label>
                                 <input type="text" id="name" name="name"
@@ -44,7 +55,6 @@
                                        value="{{ old('address', $user ? $user->address : '') }}" required>
                             </div>
 
-                            {{-- NEW: Phần chọn phương thức nhận hàng --}}
                             <div class="checkout-section delivery-method">
                                 <h3>Phương thức nhận hàng</h3>
                                 <div class="options-group">
@@ -59,7 +69,6 @@
                                 </div>
                             </div>
 
-                            {{-- NEW: Phần chọn phương thức thanh toán --}}
                             <div class="checkout-section payment-method">
                                 <h3>Phương thức thanh toán</h3>
                                 <div class="options-group">
@@ -77,7 +86,6 @@
                     </div>
                 </div>
 
-                {{-- Nút "Đặt hàng" --}}
                 <div class="continue-button-container">
                     <button class="btn btn-primary" type="submit" form="checkout-form">Đặt hàng</button>
                 </div>
@@ -87,10 +95,10 @@
             <div class="checkout-right">
                 <div class="order-summary-box">
                     <h3>Hóa Đơn</h3>
-                    @if($cartItems->isEmpty())
-                        <p>Giỏ hàng của bạn đang trống.</p>
+                    @if(!isset($cartItems) || $cartItems->isEmpty())
+                        <p>Không có sản phẩm nào để thanh toán.</p>
                     @else
-                        <div class="summary-product-list"> {{-- Thẻ div mới để chứa tất cả sản phẩm --}}
+                        <div class="summary-product-list">
                             @foreach($cartItems as $item)
                                 <div class="summary-product-item">
                                     <img src="{{ asset('Product Image/' . $item->product->productImage) }}" alt="{{ $item->product->productName }}" class="item-image">
@@ -103,10 +111,9 @@
                             @endforeach
                         </div>
 
-                        {{-- Phần tổng cộng --}}
                         <div class="summary-totals">
                             <div class="total-row grand-total-row">
-                                <span>Tổng giá: </span>
+                                <span>Tổng cộng: </span>
                                 <span>{{ number_format($grandTotal, 0, ',', '.') }} VNĐ</span>
                             </div>
                         </div>
@@ -124,22 +131,5 @@
   <script src="{{ asset('./assets/js/script.js') }}"></script>
   <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
   <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
-
-  {{-- <script>
-    document.getElementById('checkout-form').addEventListener('submit', function(event) {
-        event.preventDefault(); // Prevent the default form submission
-        const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
-
-        if (paymentMethod === 'Thẻ ngân hàng/Ví điện tử') {
-            // Redirect to the momo payment route
-            this.action = '{{ route("momo.payment") }}'; // Update the action URL
-            this.submit(); // Submit the form to momo payment route
-        } else {
-            // For cash payment, proceed to place the order normally
-            this.action = '{{ route("placeOrder") }}'; // Update the action URL
-            this.submit(); // Submit the form to place the order
-        }
-    });
-  </script> --}}
 </body>
 </html>

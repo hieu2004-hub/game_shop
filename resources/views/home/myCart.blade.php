@@ -4,6 +4,23 @@
     @include('home.homecss')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('./assets/css/myCart.css') }}">
+    <style>
+        .product-item, .product-list-headers {
+            display: grid;
+            grid-template-columns: 50px 1fr 120px 120px 150px;
+            align-items: center;
+            gap: 15px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .product-list-headers { font-weight: bold; border-bottom: 2px solid #333; }
+        .checkbox-col { text-align: center; }
+        .product-details { display: grid; grid-template-columns: 80px 1fr; align-items: center; gap: 15px;}
+        .quantity-price-total { display: contents; }
+        .quantity-control, .price, .item-total, .header-col { text-align: center; }
+        .product-details .info { text-align: left;}
+        .checkout-btn[disabled] { background-color: #ccc; cursor: not-allowed; }
+    </style>
 </head>
 <body>
 
@@ -15,22 +32,20 @@
     <div class="container">
     @if($cart->isEmpty())
         <div class="empty-cart-message">
-            Giỏ hàng của bạn đang trống.
-            <br>
-            <a href="{{ url('/') }}" class="continue-shopping-link">
-                <i class="fas fa-arrow-left"></i> Quay lại trang chủ để mua sắm
-            </a>
+            Giỏ hàng của bạn đang trống. <br>
+            <a href="{{ url('/') }}" class="continue-shopping-link"><i class="fas fa-arrow-left"></i> Quay lại trang chủ</a>
         </div>
     @else
+        <form action="{{ route('checkout') }}" method="GET" id="cart-form">
         <div class="cart-wrapper">
             <div class="cart-items-section">
-                <div class="cart-header">
-                    <h2>Giỏ Hàng</h2>
-                </div>
+                <div class="cart-header"><h2>Giỏ Hàng</h2></div>
 
-                {{-- Product List Headers (for larger screens) --}}
                 <div class="product-list-headers">
-                    <span class="header-col">Chi tiết sản phẩm</span>
+                    <div class="checkbox-col">
+                        <input type="checkbox" id="select-all-checkbox">
+                    </div>
+                    <span class="header-col" style="text-align: left;">Chi tiết sản phẩm</span>
                     <span class="header-col">Số lượng</span>
                     <span class="header-col">Đơn giá</span>
                     <span class="header-col">Tổng</span>
@@ -38,237 +53,151 @@
 
                 <div class="product-list">
                     @foreach($cart as $item)
-                        <div class="product-item" data-product-id="{{ $item->product->id }}" data-available-stock="{{ $item->product->stockQuantity }}">
+                        <div class="product-item" data-price="{{ $item->product->productPrice }}" data-product-id="{{ $item->product->id }}">
+                            <div class="checkbox-col">
+                                <input type="checkbox" class="product-checkbox" name="selected_items[]" value="{{ $item->id }}">
+                            </div>
                             <div class="product-details">
                                 <img src="{{ asset('Product Image/' . $item->product->productImage) }}" alt="{{ $item->product->productName }}">
                                 <div class="info">
                                     <span class="product-name">{{ $item->product->productName }}</span>
-                                    <span class="product-category">{{ $item->product->productCategory }}</span>
                                     <a href="{{ url('delete-cart/' . $item->id) }}" class="remove-item" onclick="confirmation(event)">Xóa</a>
                                 </div>
                             </div>
-                            <div class="quantity-price-total">
-                                <div class="quantity-control">
-                                    <button type="button" class="quantity-btn minus">-</button>
-                                    <input type="number" class="quantity-input" value="{{ $item->quantity }}" min="1">
-                                    <button type="button" class="quantity-btn plus">+</button>
-                                </div>
-                                <span class="price">{{ number_format($item->product->productPrice, 0, ',', '.') }} VNĐ</span>
-                                <span class="item-total">{{ number_format($item->quantity * $item->product->productPrice, 0, ',', '.') }} VNĐ</span>
+                            <div class="quantity-control">
+                                <button type="button" class="quantity-btn minus">-</button>
+                                <input type="number" class="quantity-input" value="{{ $item->quantity }}" min="1">
+                                <button type="button" class="quantity-btn plus">+</button>
                             </div>
+                            <span class="price">{{ number_format($item->product->productPrice, 0, ',', '.') }} VNĐ</span>
+                            <span class="item-total">{{ number_format($item->quantity * $item->product->productPrice, 0, ',', '.') }} VNĐ</span>
                         </div>
                     @endforeach
                 </div>
-
-                <a href="{{ url('/') }}" class="continue-shopping-link">
-                    <i class="fas fa-arrow-left"></i> Tiếp tục mua sắm
-                </a>
+                <a href="{{ url('/') }}" class="continue-shopping-link"><i class="fas fa-arrow-left"></i> Tiếp tục mua sắm</a>
             </div>
 
             <div class="order-summary-section">
                 <div class="summary-line">
-                    <span>Số sản phẩm: <span id="summary-item-count">{{ $cart->sum('quantity') }}</span></span>
+                    <span>Đã chọn: <span id="summary-item-count">0</span> sản phẩm</span>
                 </div>
                 <div class="total-cost-line">
-                    <span>Tổng giá: </span>
-                    <span class="total-cost-value grand-total" id="summary-grand-total">{{ number_format($cart->sum(function($item) { return $item->quantity * $item->product->productPrice; }), 0, ',', '.')}} VNĐ</span>
+                    <span>Tổng tạm tính: </span>
+                    <span class="total-cost-value grand-total" id="summary-grand-total">0 VNĐ</span>
                 </div>
-
-                <a href="{{url('checkout')}}" style="text-align: center" class="checkout-btn" id="checkout-button">Thanh toán</a>
+                <button type="submit" class="checkout-btn" id="checkout-button" disabled>Thanh toán</button>
             </div>
         </div>
+        </form>
     @endif
-    </div> {{-- End of .container --}}
+    </div>
   </main>
 
   <footer>
     @include('home.footer')
   </footer>
 
-  {{-- Toastr CDN for notifications --}}
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-
-  <script src="{{ asset('./assets/js/script.js') }}"></script>
-  <script type="module" src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.esm.js"></script>
-  <script nomodule src="https://unpkg.com/ionicons@5.5.2/dist/ionicons/ionicons.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Configure Toastr
-        toastr.options = {
-            "closeButton": true,
-            "debug": false,
-            "newestOnTop": false,
-            "progressBar": true,
-            "positionClass": "toast-top-right",
-            "preventDuplicates": false,
-            "onclick": null,
-            "showDuration": "300",
-            "hideDuration": "1000",
-            "timeOut": "5000",
-            "extendedTimeOut": "1000",
-            "showEasing": "swing",
-            "hideEasing": "linear",
-            "showMethod": "fadeIn",
-            "hideMethod": "fadeOut"
-        };
+        toastr.options = { "closeButton": true, "progressBar": true, "positionClass": "toast-top-right" };
 
-        // Define shippingCost, or ensure it's defined elsewhere
-        const shippingCost = 0; // Đặt phí vận chuyển mặc định là 0 hoặc giá trị bạn muốn
-
+        const selectAllCheckbox = document.getElementById('select-all-checkbox');
+        const productCheckboxes = document.querySelectorAll('.product-checkbox');
         const checkoutButton = document.getElementById('checkout-button');
+        const cartForm = document.getElementById('cart-form');
 
-        if (checkoutButton) {
-            checkoutButton.addEventListener('click', function(event) {
-                let valid = true;
-                let errorMessage = '';
-
-                document.querySelectorAll('.product-item').forEach(itemRow => { // Lặp qua từng dòng sản phẩm
-                    const quantityInput = itemRow.querySelector('.quantity-input'); // Lấy input số lượng trong dòng này
-                    const quantity = parseInt(quantityInput.value);
-                    const stockQuantity = parseInt(itemRow.getAttribute('data-available-stock'));
-
-                    if (quantity > stockQuantity) {
-                        errorMessage += `Không đủ hàng trong kho cho sản phẩm: ${itemRow.querySelector('.product-name').innerText}. Số lượng tối đa bạn có thể đặt là: ${stockQuantity}\n`;
-                        valid = false;
-                    }
-                });
-
-                if (!valid) {
-                    alert(errorMessage);
-                    event.preventDefault();
-                }
-            });
-        } else {
-            console.error("Checkout button not found");
+        function updateTotalAndItemTotal(quantityInput) {
+            const productItem = quantityInput.closest('.product-item');
+            const quantity = parseInt(quantityInput.value);
+            const price = parseFloat(productItem.dataset.price);
+            const itemTotalEl = productItem.querySelector('.item-total');
+            itemTotalEl.innerText = `${(quantity * price).toLocaleString('vi-VN')} VNĐ`;
+            updateSummary();
         }
 
-        // --- JavaScript for Quantity Plus/Minus Buttons ---
-        document.querySelectorAll('.quantity-control').forEach(control => {
-            const minusBtn = control.querySelector('.minus');
-            const plusBtn = control.querySelector('.plus');
-            const quantityInput = control.querySelector('.quantity-input');
+        function updateSummary() {
+            let totalItems = 0;
+            let grandTotal = 0;
+            let selectedCount = 0;
 
-            minusBtn.addEventListener('click', () => {
-                let currentValue = parseInt(quantityInput.value);
-                if (currentValue > parseInt(quantityInput.min)) {
-                    quantityInput.value = currentValue - 1;
-                    quantityInput.dispatchEvent(new Event('change')); // Kích hoạt sự kiện 'change' để cập nhật
-                } else {
-                    toastr.error('Số lượng không thể nhỏ hơn 1.');
+            productCheckboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    const productItem = checkbox.closest('.product-item');
+                    const quantity = parseInt(productItem.querySelector('.quantity-input').value);
+                    const price = parseFloat(productItem.dataset.price);
+                    totalItems += quantity;
+                    grandTotal += quantity * price;
+                    selectedCount++;
                 }
             });
 
-            plusBtn.addEventListener('click', () => {
-                let currentValue = parseInt(quantityInput.value);
-                quantityInput.value = currentValue + 1;
-                quantityInput.dispatchEvent(new Event('change')); // Kích hoạt sự kiện 'change' để cập nhật
+            document.getElementById('summary-item-count').innerText = totalItems;
+            document.getElementById('summary-grand-total').innerText = `${grandTotal.toLocaleString('vi-VN')} VNĐ`;
+            checkoutButton.disabled = selectedCount === 0;
+        }
+
+        selectAllCheckbox.addEventListener('change', () => {
+            productCheckboxes.forEach(cb => cb.checked = selectAllCheckbox.checked);
+            updateSummary();
+        });
+
+        productCheckboxes.forEach(cb => {
+            cb.addEventListener('change', () => {
+                selectAllCheckbox.checked = Array.from(productCheckboxes).every(c => c.checked);
+                updateSummary();
             });
         });
 
-
-        // --- Code để cập nhật số lượng theo thời gian thực ---
-        document.querySelectorAll('.quantity-input').forEach(input => {
-            input.addEventListener('change', function() {
-                const row = this.closest('.product-item');
-                const productId = row.getAttribute('data-product-id');
-                const newQuantity = parseInt(this.value);
-                const oldQuantity = parseInt(this.getAttribute('data-old-quantity') || this.value); // Lưu lại số lượng cũ
-
-                // Cập nhật số lượng cũ vào thuộc tính data để khôi phục nếu lỗi
-                this.setAttribute('data-old-quantity', oldQuantity);
-
-                if (isNaN(newQuantity) || newQuantity < 1) {
-                    this.value = 1;
-                    toastr.error('Số lượng không hợp lệ. Đã đặt lại về 1.');
-                    updateGrandTotals(); // Cập nhật tổng sau khi đặt lại
-                    return;
+        document.querySelectorAll('.quantity-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const control = this.closest('.quantity-control');
+                const input = control.querySelector('.quantity-input');
+                let value = parseInt(input.value);
+                if (this.classList.contains('plus')) {
+                    value++;
+                } else if (this.classList.contains('minus') && value > 1) {
+                    value--;
                 }
+                input.value = value;
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+            });
+        });
+
+        document.querySelectorAll('.quantity-input').forEach(input => {
+            input.addEventListener('change', function(e) {
+                const productItem = this.closest('.product-item');
+                const productId = productItem.dataset.productId;
+                const newQuantity = this.value;
+                updateTotalAndItemTotal(this);
 
                 fetch(`/update-cart/${productId}`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}' },
                     body: JSON.stringify({ quantity: newQuantity })
-                })
-                .then(response => response.json())
-                .then(data => {
-                    console.log('Server response for quantity update:', data);
-                    if (data.success) {
-                        const itemTotalElement = row.querySelector('.item-total');
-                        const originalPriceText = row.querySelector('.price').innerText;
-                        // Loại bỏ dấu chấm và " VNĐ" để chuyển thành số
-                        const originalPrice = parseFloat(originalPriceText.replace(/\./g, '').replace(' VNĐ', ''));
-
-                        const newItemTotal = newQuantity * originalPrice;
-                        itemTotalElement.innerText = `${newItemTotal.toLocaleString('vi-VN')} VNĐ`; // Định dạng lại số
-
-                        updateGrandTotals(); // Gọi hàm cập nhật tổng sau khi thành công
-                        toastr.success('Số lượng đã được cập nhật.');
-                    } else {
-                        toastr.error(data.message || 'Có lỗi xảy ra khi cập nhật số lượng.');
-                        // Khôi phục số lượng về giá trị cũ nếu server báo lỗi
-                        if (data.current_quantity_in_cart !== undefined) {
-                            this.value = data.current_quantity_in_cart;
-                        } else {
-                            this.value = oldQuantity; // Khôi phục về số lượng trước khi gửi request
-                        }
-                        updateGrandTotals(); // Cập nhật tổng để phản ánh số lượng đã khôi phục
+                }).then(res => res.json()).then(data => {
+                    if (!data.success) {
+                        toastr.error(data.message);
+                        // Optional: revert quantity if server fails
                     }
-                })
-                .catch(error => {
-                    console.error('Lỗi khi gửi yêu cầu AJAX:', error);
-                    toastr.error('Có lỗi xảy ra khi gửi yêu cầu cập nhật.');
-                    this.value = oldQuantity; // Khôi phục số lượng nếu có lỗi mạng/server
-                    updateGrandTotals(); // Cập nhật tổng để phản ánh số lượng đã khôi phục
                 });
             });
         });
 
-        // Function to update all grand totals
-        function updateGrandTotals() {
-            let subtotal = 0;
-            let totalItemsCount = 0;
-            document.querySelectorAll('.product-item').forEach(row => {
-                const quantityInput = row.querySelector('.quantity-input');
-                if (quantityInput) {
-                    const quantity = parseInt(quantityInput.value);
-                    const priceElement = row.querySelector('.price');
-                    if (priceElement) {
-                        // Loại bỏ dấu chấm và " VNĐ" để chuyển thành số
-                        const price = parseFloat(priceElement.innerText.replace(/\./g, '').replace(' VNĐ', ''));
-                        subtotal += (quantity * price);
-                        totalItemsCount += quantity;
-                    }
-                }
-            });
-
-            // Cập nhật "Số sản phẩm"
-            const summaryItemCountElement = document.getElementById('summary-item-count');
-            if (summaryItemCountElement) {
-                summaryItemCountElement.innerText = totalItemsCount;
+        cartForm.addEventListener('submit', function(e) {
+            if (document.querySelectorAll('.product-checkbox:checked').length === 0) {
+                e.preventDefault();
+                toastr.error('Vui lòng chọn ít nhất một sản phẩm để thanh toán.');
             }
+        });
 
-            // Cập nhật "Tổng giá"
-            const grandTotalElement = document.getElementById('summary-grand-total');
-            if (grandTotalElement) {
-                const finalTotal = subtotal + shippingCost;
-                grandTotalElement.innerText = `${finalTotal.toLocaleString('vi-VN')} VNĐ`; // Định dạng lại số
-            }
-        }
-
-        // Gọi hàm cập nhật tổng khi trang được tải lần đầu
-        updateGrandTotals();
+        updateSummary();
     });
-  </script>
 
-  {{-- SweetAlert2 (phiên bản hiện đại) --}}
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  <script type="text/javascript">
     function confirmation(ev) {
         ev.preventDefault();
         var urlToRedirect = ev.currentTarget.getAttribute('href');
@@ -276,17 +205,10 @@
             title: "Bạn chắc chắn không?",
             text: "Bạn có muốn xóa sản phẩm này khỏi giỏ hàng không?",
             icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: '#3085d6',
-            cancelButtonColor: '#d33',
-            confirmButtonText: 'Có, xóa nó!',
+            showCancelButton: true, confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33', confirmButtonText: 'Có, xóa nó!',
             cancelButtonText: 'Hủy'
-        })
-        .then((result) => {
-            if (result.isConfirmed) {
-                window.location.href = urlToRedirect;
-            }
-        });
+        }).then((result) => { if (result.isConfirmed) { window.location.href = urlToRedirect; } });
     }
   </script>
 

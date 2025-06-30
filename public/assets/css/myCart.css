@@ -171,6 +171,7 @@ main {
     padding: 8px 0;
     text-align: center;
     font-size: 1rem;
+    appearance: textfield;
     -moz-appearance: textfield;
 }
 .quantity-input::-webkit-outer-spin-button,
@@ -324,6 +325,16 @@ main {
     font-size: 1.5rem;
     color: #666;
 }
+
+.product-item, .product-list-headers {
+    display: grid;
+    grid-template-columns: 50px auto 120px 120px 150px; /* Thêm cột cho checkbox */
+    align-items: center;
+    gap: 15px;
+}
+.checkbox-col { text-align: center; }
+.product-details { grid-template-columns: 80px 1fr; }
+.quantity-price-total { display: contents; } /* Xóa bỏ grid cũ */
 
 /* Responsive adjustments */
 @media (max-width: 992px) {

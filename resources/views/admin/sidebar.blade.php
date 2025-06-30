@@ -68,8 +68,8 @@
             <span class="nav-link-text ms-1">Sản Phẩm</span>
             </a>
         </li>
-        <li class="nav-item">
-            <a class="nav-link {{ request()->is('warranty/check-form') ? 'active' : '' }}" href="{{route('warranty.checkForm')}}"> {{-- NEW: Link to Warranty Check Form --}}
+        {{-- <li class="nav-item">
+            <a class="nav-link {{ request()->is('warranty/check-form') ? 'active' : '' }}" href="{{route('warranty.checkForm')}}">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                 <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                 <title>box-3d-50</title>
@@ -86,9 +86,9 @@
                 </g>
                 </svg>
             </div>
-            <span class="nav-link-text ms-1">Bảo Hành</span> {{-- NEW: Link to Receive Product --}}
+            <span class="nav-link-text ms-1">Bảo Hành</span>
             </a>
-        </li>
+        </li> --}}
         <li class="nav-item">
             <a class="nav-link {{ request()->is('admin/warehouses*') ? 'active' : '' }}" href="{{route('admin.viewWarehouses')}}">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
@@ -110,8 +110,8 @@
             <span class="nav-link-text ms-1">Kho</span>
             </a>
         </li>
-        <li class="nav-item">
-            <a class="nav-link {{ request()->is('admin/receive-product-form') ? 'active' : '' }}" href="{{route('admin.receiveProductForm')}}"> {{-- NEW: Link to Receive Product --}}
+        {{-- <li class="nav-item">
+            <a class="nav-link {{ request()->is('admin/receive-product-form') ? 'active' : '' }}" href="{{route('admin.receiveProductForm')}}">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">
                 <svg width="12px" height="12px" viewBox="0 0 42 42" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
                 <title>box-3d-50</title>
@@ -128,9 +128,9 @@
                 </g>
                 </svg>
             </div>
-            <span class="nav-link-text ms-1">Nhập Hàng</span> {{-- NEW: Link to Receive Product --}}
+            <span class="nav-link-text ms-1">Nhập Hàng</span>
             </a>
-        </li>
+        </li> --}}
         <li class="nav-item">
             <a class="nav-link {{ request()->is('admin/profile*') ? 'active' : '' }}" href="{{route('adminProfile')}}">
             <div class="icon icon-shape icon-sm shadow border-radius-md bg-white text-center me-2 d-flex align-items-center justify-content-center">

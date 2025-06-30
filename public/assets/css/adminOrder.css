@@ -1,0 +1,30 @@
+.table th, .table td {
+    vertical-align: middle;
+    text-align: center;
+}
+.form-label {
+    font-weight: bold;
+}
+.status-badge {
+    display: inline-block; padding: .25em .4em; font-size: 75%;
+    font-weight: 700; line-height: 1; text-align: center;
+    white-space: nowrap; vertical-align: baseline; border-radius: .25rem;
+    color: #fff;
+}
+.status-badge[data-status="Chờ Xử Lý"] { background-color: #ffc107; color: #212529; }
+.status-badge[data-status="Đã Xác Nhận"] { background-color: #007bff; }
+.status-badge[data-status="Đã Nhận Được Hàng"] { background-color: #28a745; }
+.status-badge[data-status="Hủy Đơn Hàng"] { background-color: #dc3545; }
+.status-badge[data-status="Thanh toán thất bại"] { background-color: #6c757d; }
+.status-badge[data-status="Đã thanh toán"] { background-color: #28a745; }
+.status-badge[data-status="Chưa thanh toán"] { background-color: #ffc107; color: #212529; }
+.status-badge[data-status="Chờ hoàn tiền"] { background-color: #6c757d; }
+.status-badge[data-status="Đã hoàn tiền"] { background-color: #17a2b8; }
+.status-badge[data-status="Đã hủy"] { background-color: #dc3545; }
+
+/* FIX: Đảm bảo viền cho hàng cuối cùng và cạnh bảng */
+.table-bordered tbody tr:last-child td {
+    border-bottom: 1px solid #dee2e6 !important;
+    border-right: 1px solid #dee2e6 !important;
+    border-left: 1px solid #dee2e6 !important;
+}

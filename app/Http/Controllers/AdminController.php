@@ -104,14 +104,17 @@ class AdminController extends Controller
     public function adminSearchProducts(Request $request)
     {
         $search = $request->search;
-        $products = Product::with('warehouseStocks')
+        $products = Product::with('warehouseStocks.warehouse')
             ->where('productName', 'like', '%' . $search . '%')
             ->orWhere('productCategory', 'like', '%' . $search . '%')
             ->orWhere('productBrand', 'like', '%' . $search . '%')
             ->orderBy('updated_at', 'desc')
             ->paginate(5);
 
-        return view('admin.adminSearch', compact('products'));
+        // THÊM: Lấy danh sách kho để truyền vào modal cho trang tìm kiếm
+        $warehouses = Warehouse::orderBy('name')->get();
+
+        return view('admin.adminSearch', compact('products', 'warehouses'));
     }
 
     public function addProduct()
@@ -127,9 +130,8 @@ class AdminController extends Controller
         $data->productCategory = $request->productCategory;
         $data->productDescription = $request->productDescription;
         $data->productBrand = $request->productBrand;
-        // THÊM DÒNG NÀY
-        $data->is_warrantable = $request->has('is_warrantable'); // Checkbox
-        $data->default_warranty_months = $request->default_warranty_months; // Input number
+        $data->is_warrantable = $request->has('is_warrantable');
+        $data->default_warranty_months = $request->default_warranty_months;
         $image = $request->productImage;
         if ($image) {
             $filename = time() . '.' . $image->getClientOriginalExtension();
@@ -137,16 +139,23 @@ class AdminController extends Controller
             $data->productImage = $filename;
         }
         $data->save();
-        toastr()->timeOut(5000)->closeButton()->addSuccess('Product Added Successfully!');
-        return redirect('viewProduct');
+        toastr()->timeOut(5000)->closeButton()->addSuccess('Sản phẩm đã được thêm thành công!');
+
+        // SỬA: Thay vì redirect thường, chúng ta redirect với session flash
+        // để kích hoạt modal nhập kho ở trang danh sách sản phẩm.
+        return redirect()->route('admin.viewProduct')->with('show_receive_modal_for', $data->id);
     }
 
     public function viewProduct()
     {
-        $products = Product::with('warehouseStocks')
+        $products = Product::with('warehouseStocks.warehouse')
             ->orderBy('updated_at', 'desc')
             ->paginate(5);
-        return view('admin.viewProduct', compact('products'));
+
+        // THÊM: Lấy danh sách kho để truyền vào modal
+        $warehouses = Warehouse::orderBy('name')->get();
+
+        return view('admin.viewProduct', compact('products', 'warehouses'));
     }
 
     public function deleteProduct($id)
@@ -174,9 +183,8 @@ class AdminController extends Controller
         $data->productCategory = $request->productCategory;
         $data->productDescription = $request->productDescription;
         $data->productBrand = $request->productBrand;
-        // THÊM DÒNG NÀY
-        $data->is_warrantable = $request->has('is_warrantable'); // Checkbox
-        $data->default_warranty_months = $request->default_warranty_months; // Input number
+        $data->is_warrantable = $request->has('is_warrantable');
+        $data->default_warranty_months = $request->default_warranty_months;
         $image = $request->productImage;
         if ($image) {
             $filename = time() . '.' . $image->getClientOriginalExtension();
@@ -187,22 +195,45 @@ class AdminController extends Controller
         toastr()->timeOut(5000)->closeButton()->addSuccess('Product Updated Successfully!');
         return redirect('viewProduct');
     }
-    // Phương thức viewOrder đã được cập nhật để xử lý lọc
     public function viewOrder(Request $request)
     {
         $query = Order::orderBy('updated_at', 'desc')->with(['user']);
 
-        // Lọc theo trạng thái xử lý
-        if ($request->has('status') && $request->status != '') {
+        // 1. Lọc theo trạng thái xử lý
+        if ($request->filled('status')) {
             $query->where('status', $request->status);
         }
 
-        // Lọc theo trạng thái thanh toán
-        if ($request->has('payment_status') && $request->payment_status != '') {
+        // 2. Lọc theo trạng thái thanh toán
+        if ($request->filled('payment_status')) {
             $query->where('payment_status', $request->payment_status);
         }
 
-        $orders = $query->paginate(10)->withQueryString(); // withQueryString để giữ lại tham số filter khi chuyển trang
+        // 3. SỬA: Logic tìm kiếm thông minh hơn
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $searchId = ltrim($search, '#'); // Bỏ dấu # nếu có
+
+            // Kiểm tra xem chuỗi tìm kiếm (sau khi bỏ #) có phải là một số nguyên hay không
+            if (ctype_digit($searchId)) {
+                // --- TRƯỜNG HỢP 1: Người dùng nhập số (tìm kiếm chính xác) ---
+                // Ưu tiên tìm chính xác ID hoặc chính xác SĐT
+                $query->where(function ($q) use ($searchId) {
+                    $q->where('id', '=', $searchId) // Tìm ID chính xác
+                        ->orWhere('phone', '=', $searchId); // Tìm SĐT chính xác
+                });
+            } else {
+                // --- TRƯỜNG HỢP 2: Người dùng nhập chữ (tìm kiếm tương đối) ---
+                // Tìm kiếm tương đối trên các trường văn bản
+                $query->where(function ($q) use ($search) {
+                    $q->where('name', 'like', '%' . $search . '%')
+                        ->orWhere('phone', 'like', '%' . $search . '%');
+                });
+            }
+        }
+
+        $orders = $query->paginate(6)->withQueryString();
+
         return view('admin.order', compact('orders'));
     }
 
@@ -212,7 +243,7 @@ class AdminController extends Controller
 
         if (!$order) {
             toastr()->timeOut(5000)->closeButton()->addError('Đơn hàng không tồn tại hoặc đã bị xóa!');
-            return redirect()->route('admin.viewOrders'); // Chuyển hướng về trang danh sách đơn hàng
+            return redirect()->route('admin.viewOrders');
         }
 
         return view('admin.orderDetail', compact('order'));
@@ -232,13 +263,12 @@ class AdminController extends Controller
             return redirect()->back();
         }
 
-        // Nếu đơn đã thanh toán, chuyển sang chờ hoàn tiền
         if ($order->payment_status == 'Đã thanh toán') {
             $order->status = 'Hủy Đơn Hàng';
             $order->payment_status = 'Chờ hoàn tiền';
             $order->save();
             toastr()->success('Đơn hàng đã được hủy. Vui lòng tiến hành hoàn tiền cho khách hàng.');
-        } else { // Đơn COD chưa thanh toán
+        } else {
             DB::transaction(function () use ($order) {
                 $order->status = 'Hủy Đơn Hàng';
                 $order->payment_status = 'Đã hủy';
@@ -266,7 +296,7 @@ class AdminController extends Controller
     {
         $order = Order::find($id);
         if ($order && $order->status == 'Chờ Xử Lý') {
-            $order->status = 'Đã Xác Nhận'; // Hoặc 'Đang Giao Hàng' tùy quy trình của bạn
+            $order->status = 'Đã Xác Nhận';
             $order->save();
             toastr()->success('Đơn hàng đã được xác nhận thành công!');
         } else {
@@ -275,9 +305,6 @@ class AdminController extends Controller
         return redirect()->back();
     }
 
-    /**
-     * HÀM MỚI: Admin xác nhận đã hoàn tiền thủ công
-     */
     public function confirmRefund($id)
     {
         $order = Order::find($id);
@@ -287,17 +314,15 @@ class AdminController extends Controller
             return redirect()->back();
         }
 
-        // Chỉ xác nhận hoàn tiền cho đơn đang ở trạng thái chờ hoàn tiền
         if ($order->payment_status !== 'Chờ hoàn tiền') {
             toastr()->error('Không thể thực hiện hành động này cho đơn hàng.');
             return redirect()->back();
         }
 
         DB::transaction(function () use ($order) {
-            $order->payment_status = 'Đã hoàn tiền'; // Cập nhật trạng thái đã hoàn tiền
+            $order->payment_status = 'Đã hoàn tiền';
             $order->save();
 
-            // Bây giờ mới trả hàng về kho
             foreach ($order->orderItems as $item) {
                 $stockEntry = ProductWarehouseStock::where('product_id', $item->productID)
                     ->where('warehouse_id', $item->warehouse_id_at_sale)
@@ -315,9 +340,6 @@ class AdminController extends Controller
         return redirect()->back();
     }
 
-    /**
-     * HÀM MỚI: Admin xác nhận đã nhận tiền cho đơn COD
-     */
     public function confirmPayment($id)
     {
         $order = Order::find($id);
@@ -327,7 +349,6 @@ class AdminController extends Controller
             return redirect()->back();
         }
 
-        // Chỉ xác nhận cho đơn COD chưa thanh toán
         if ($order->payment_method == 'Tiền mặt' && $order->payment_status == 'Chưa thanh toán') {
             $order->payment_status = 'Đã thanh toán';
             $order->save();
@@ -359,12 +380,7 @@ class AdminController extends Controller
             'phone' => 'nullable|string|max:20',
         ]);
 
-        Warehouse::create([
-            'name' => $request->name,
-            'address' => $request->address,
-            'contact_person' => $request->contact_person,
-            'phone' => $request->phone,
-        ]);
+        Warehouse::create($request->all());
 
         toastr()->timeOut(5000)->closeButton()->addSuccess('Kho hàng đã được thêm thành công!');
         return redirect()->route('admin.viewWarehouses');
@@ -395,12 +411,7 @@ class AdminController extends Controller
             'phone' => 'nullable|string|max:20',
         ]);
 
-        $warehouse->update([
-            'name' => $request->name,
-            'address' => $request->address,
-            'contact_person' => $request->contact_person,
-            'phone' => $request->phone,
-        ]);
+        $warehouse->update($request->all());
 
         toastr()->timeOut(5000)->closeButton()->addSuccess('Kho hàng đã được cập nhật thành công!');
         return redirect()->route('admin.viewWarehouses');
@@ -426,11 +437,19 @@ class AdminController extends Controller
         return redirect()->back();
     }
 
-    // --- Receive Product Functionality ---
-    public function receiveProductForm()
+    // SỬA: Cập nhật phương thức để nhận ID sản phẩm từ URL
+    public function receiveProductForm(Request $request)
     {
         $warehouses = Warehouse::orderBy('name')->get();
-        return view('admin.receiveProduct', compact('warehouses'));
+        $product = null; // Khởi tạo sản phẩm là null
+
+        // Kiểm tra nếu có product_id được truyền qua URL
+        if ($request->has('product_id')) {
+            $product = Product::find($request->product_id);
+        }
+
+        // Truyền biến product sang view
+        return view('admin.receiveProduct', compact('warehouses', 'product'));
     }
 
     public function receiveProduct(Request $request)
@@ -476,9 +495,8 @@ class AdminController extends Controller
 
         if ($search) {
             $products = Product::where('productName', 'LIKE', '%' . $search . '%')
-                // THÊM DÒNG NÀY ĐỂ LOẠI TRỪ SẢN PHẨM ĐÃ CÓ TỒN KHO
                 ->whereDoesntHave('warehouseStocks', function ($query) {
-                    $query->where('quantity', '>', 0); // Kiểm tra nếu có bất kỳ tồn kho nào lớn hơn 0
+                    $query->where('quantity', '>', 0);
                 })
                 ->select('id', 'productName')
                 ->get();
@@ -487,7 +505,7 @@ class AdminController extends Controller
         return response()->json($products);
     }
 
-    public function viewWarehouseStock($warehouse_id)
+    public function viewWarehouseStock(Request $request, $warehouse_id)
     {
         $warehouse = Warehouse::find($warehouse_id);
         if (!$warehouse) {
@@ -495,12 +513,27 @@ class AdminController extends Controller
             return redirect()->route('admin.viewWarehouses');
         }
 
-        $stockEntries = ProductWarehouseStock::where('warehouse_id', $warehouse_id)
-            ->with('product')
-            ->orderBy('received_date', 'desc')
-            ->paginate(10);
+        // Lấy từ khóa tìm kiếm từ request
+        $search = $request->input('search');
 
-        return view('admin.viewWarehouseStock', compact('warehouse', 'stockEntries'));
+        // Bắt đầu query
+        $query = ProductWarehouseStock::where('warehouse_id', $warehouse_id);
+
+        // Nếu có từ khóa tìm kiếm, lọc theo tên sản phẩm
+        if ($search) {
+            $query->whereHas('product', function ($q) use ($search) {
+                $q->where('productName', 'LIKE', '%' . $search . '%');
+            });
+        }
+
+        // Lấy kết quả và phân trang
+        $stockEntries = $query->with('product')
+            ->orderBy('received_date', 'desc')
+            ->paginate(10)
+            ->appends(['search' => $search]); // Giữ lại từ khóa search khi chuyển trang
+
+        // Truyền cả $search sang view
+        return view('admin.viewWarehouseStock', compact('warehouse', 'stockEntries', 'search'));
     }
 
     public function editStockEntry($stock_id)
@@ -583,22 +616,11 @@ class AdminController extends Controller
         return redirect()->back();
     }
 
-    /**
-     * Hiển thị form kiểm tra bảo hành.
-     *
-     * @return \Illuminate\View\View
-     */
     public function showCheckForm()
     {
         return view('admin.checkWarranty');
     }
 
-    /**
-     * Xử lý yêu cầu kiểm tra bảo hành và hiển thị kết quả.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\View\View
-     */
     public function check(Request $request)
     {
         $request->validate([
@@ -606,9 +628,6 @@ class AdminController extends Controller
         ]);
 
         $serialNumber = $request->input('serial_number');
-
-        // Tìm ProductInstance dựa trên serial_number
-        // Eager load product và owner để hiển thị thông tin chi tiết
         $productInstance = ProductInstance::with(['product', 'owner'])->where('serial_number', $serialNumber)->first();
 
         $error = null;
@@ -616,7 +635,6 @@ class AdminController extends Controller
             $error = 'Không tìm thấy sản phẩm với số Serial này. Vui lòng kiểm tra lại.';
         }
 
-        // Truyền productInstance và error vào view để hiển thị thông tin
         return view('admin.checkWarranty', compact('productInstance', 'error'));
     }
 }

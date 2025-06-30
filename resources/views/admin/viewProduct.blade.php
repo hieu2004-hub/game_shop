@@ -142,10 +142,12 @@
                             <label for="modal_quantity" class="form-label">Số lượng nhập</label>
                             <input type="number" name="quantity" id="modal_quantity" class="form-control" required min="1">
                         </div>
-                         <div class="mb-3">
-                            <label for="modal_import_price" class="form-label">Giá nhập (trên 1 sản phẩm)</label>
-                            <input type="number" name="import_price" id="modal_import_price" class="form-control" required min="0">
+                        <!-- SỬA ĐOẠN NÀY -->
+                        <div class="mb-3">
+                            <label for="modal_total_import_price" class="form-label">Tổng giá nhập cho cả lô hàng</label>
+                            <input type="number" name="total_import_price" id="modal_total_import_price" class="form-control" required min="0" placeholder="Ví dụ: 5000000">
                         </div>
+                        <!-- KẾT THÚC SỬA -->
                          <div class="mb-3">
                             <label for="modal_received_date" class="form-label">Ngày nhập</label>
                             <input type="date" name="received_date" id="modal_received_date" class="form-control" value="{{ now()->format('Y-m-d') }}">

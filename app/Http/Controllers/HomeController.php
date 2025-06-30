@@ -75,7 +75,9 @@ class HomeController extends Controller
 
         // Cập nhật mật khẩu nếu có
         if ($request->filled('new_password')) {
-            $user->password = Hash::make($request->new_password);
+            $user->forceFill([
+                'password' => Hash::make($request->new_password),
+            ]);
         }
 
         $user->save();

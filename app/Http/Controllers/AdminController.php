@@ -10,6 +10,7 @@ use App\Models\ProductWarehouseStock;
 use App\Models\ProductInstance;
 use App\Models\OrderItem;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
@@ -18,41 +19,87 @@ class AdminController extends Controller
 {
     public function index()
     {
-        // 1. Doanh thu và lợi nhuận (cho các đơn hàng đã được thanh toán)
-        $paidOrderItems = OrderItem::whereHas('order', function ($query) {
-            $query->where('payment_status', 'Đã thanh toán');
-        })->get();
-
-        $totalRevenue = 0;
-        $totalProfit = 0;
-
-        foreach ($paidOrderItems as $item) {
-            $totalRevenue += $item->quantity * $item->price;
-            // Đảm bảo import_price_at_sale không null và lớn hơn 0 để tính lợi nhuận
-            if ($item->import_price_at_sale !== null && $item->import_price_at_sale > 0) {
-                $totalProfit += $item->quantity * ($item->price - $item->import_price_at_sale);
-            }
-        }
-
-        // 2. Số đơn hàng chờ xử lý
+        // =====================================================================
+        // 1. ĐƠN HÀNG CẦN XỬ LÝ
+        // =====================================================================
         $pendingOrdersCount = Order::where('status', 'Chờ Xử Lý')->count();
 
-        // 3. Tổng số đơn hàng
-        $totalOrdersCount = Order::count();
+        // =====================================================================
+        // 2. TÍNH TOÁN DOANH THU & LỢI NHUẬN THEO THỜI GIAN
+        // Logic mới: Chỉ tính trên các đơn hàng có trạng thái "Đã Nhận Được Hàng"
+        // =====================================================================
 
-        // 4. Tổng số sản phẩm
-        $totalProductsCount = Product::count();
+        // Hàm closure để tái sử dụng logic tính toán
+        $calculateMetrics = function ($query) {
+            $items = $query->get();
+            $revenue = 0;
+            $profit = 0;
+            foreach ($items as $item) {
+                $itemRevenue = $item->quantity * $item->price;
+                $revenue += $itemRevenue;
+                if ($item->import_price_at_sale > 0) {
+                    $profit += $item->quantity * ($item->price - $item->import_price_at_sale);
+                }
+            }
+            return ['revenue' => $revenue, 'profit' => $profit];
+        };
 
-        // 5. Tổng số người dùng (giả sử usertype 0 là người dùng thường)
-        $totalUsersCount = User::where('usertype', 0)->count(); // Thay đổi nếu usertype của admin không phải 1
+        // --- Doanh thu & Lợi nhuận HÔM NAY ---
+        $todayQuery = OrderItem::whereHas('order', function ($query) {
+            $query->where('status', 'Đã Nhận Được Hàng')
+                ->whereDate('updated_at', Carbon::today()); // Dựa vào ngày đơn hàng được cập nhật sang trạng thái cuối
+        });
+        $todayMetrics = $calculateMetrics($todayQuery);
+        $dailyRevenue = $todayMetrics['revenue'];
+        $dailyProfit = $todayMetrics['profit'];
 
+
+        // --- Doanh thu & Lợi nhuận THÁNG NÀY ---
+        $monthlyQuery = OrderItem::whereHas('order', function ($query) {
+            $query->where('status', 'Đã Nhận Được Hàng')
+                ->whereMonth('updated_at', Carbon::now()->month)
+                ->whereYear('updated_at', Carbon::now()->year);
+        });
+        $monthlyMetrics = $calculateMetrics($monthlyQuery);
+        $monthlyRevenue = $monthlyMetrics['revenue'];
+        $monthlyProfit = $monthlyMetrics['profit'];
+
+        // =====================================================================
+        // 3. CHUẨN BỊ DỮ LIỆU CHO BIỂU ĐỒ (Doanh thu 7 ngày gần nhất)
+        // =====================================================================
+        $chartData = OrderItem::whereHas('order', function ($query) {
+            $query->where('status', 'Đã Nhận Được Hàng')
+                ->where('updated_at', '>=', Carbon::now()->subDays(6)); // Lấy dữ liệu từ 6 ngày trước đến nay
+        })
+            ->select(
+                DB::raw('DATE(updated_at) as date'),
+                DB::raw('SUM(price * quantity) as daily_revenue')
+            )
+            ->groupBy('date')
+            ->orderBy('date', 'ASC')
+            ->pluck('daily_revenue', 'date');
+
+        // Tạo mảng đầy đủ cho 7 ngày, điền 0 vào những ngày không có doanh thu
+        $chartLabels = [];
+        $chartValues = [];
+        for ($i = 6; $i >= 0; $i--) {
+            $date = Carbon::now()->subDays($i);
+            $dateString = $date->format('Y-m-d');
+            $chartLabels[] = $date->format('d/m'); // Định dạng ngày cho nhãn biểu đồ
+            $chartValues[] = $chartData->get($dateString, 0); // Lấy doanh thu của ngày, nếu không có thì mặc định là 0
+        }
+
+        // =====================================================================
+        // 4. TRUYỀN DỮ LIỆU SANG VIEW
+        // =====================================================================
         return view('admin.dashBoard', compact(
-            'totalRevenue',
-            'totalProfit',
             'pendingOrdersCount',
-            'totalOrdersCount',
-            'totalProductsCount',
-            'totalUsersCount'
+            'dailyRevenue',
+            'dailyProfit',
+            'monthlyRevenue',
+            'monthlyProfit',
+            'chartLabels',
+            'chartValues'
         ));
     }
     public function profile()
@@ -143,7 +190,7 @@ class AdminController extends Controller
 
         // SỬA: Thay vì redirect thường, chúng ta redirect với session flash
         // để kích hoạt modal nhập kho ở trang danh sách sản phẩm.
-        return redirect()->route('admin.viewProduct')->with('show_receive_modal_for', $data->id);
+        return redirect()->route('admin.viewProduct');
     }
 
     public function viewProduct()
@@ -458,11 +505,18 @@ class AdminController extends Controller
             'product_id' => 'required|exists:products,id',
             'warehouse_id' => 'required|exists:warehouses,id',
             'quantity' => 'required|integer|min:1',
-            'import_price' => 'required|numeric|min:0',
+            // Đổi tên 'import_price' thành 'total_import_price' để rõ ràng hơn
+            'total_import_price' => 'required|numeric|min:0',
             'batch_identifier' => 'nullable|string|max:255',
             'received_date' => 'nullable|date',
             'notes' => 'nullable|string|max:1000',
         ]);
+
+        $quantity = (int) $request->quantity;
+        $totalImportPrice = (float) $request->total_import_price;
+
+        // TÍNH TOÁN LẠI: Lấy giá nhập trên mỗi sản phẩm
+        $unitImportPrice = ($quantity > 0) ? $totalImportPrice / $quantity : 0;
 
         $batchIdentifier = $request->batch_identifier ?: 'BATCH_' . time() . '_' . uniqid();
 
@@ -473,8 +527,14 @@ class AdminController extends Controller
                 'batch_identifier' => $batchIdentifier,
             ]);
 
-            $stockEntry->quantity += $request->quantity;
-            $stockEntry->import_price = $request->import_price;
+            // Nếu là lô mới, khởi tạo số lượng
+            if (!$stockEntry->exists) {
+                $stockEntry->quantity = 0;
+            }
+
+            $stockEntry->quantity += $quantity;
+            // LƯU GIÁ TRÊN TỪNG SẢN PHẨM, KHÔNG LƯU TỔNG GIÁ LÔ
+            $stockEntry->import_price = $unitImportPrice;
             $stockEntry->received_date = $request->received_date ?: now();
             $stockEntry->notes = $request->notes;
             $stockEntry->save();

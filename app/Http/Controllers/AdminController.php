@@ -299,37 +299,43 @@ class AdminController extends Controller
     public function cancelOrder($id)
     {
         $order = Order::find($id);
+
         if (!$order) {
             toastr()->error('Đơn hàng không tồn tại!');
             return redirect()->back();
         }
+
         if ($order->status == 'Hủy Đơn Hàng' || $order->status == 'Đã Nhận Được Hàng') {
             toastr()->info('Không thể hủy đơn hàng ở trạng thái này.');
             return redirect()->back();
         }
 
-        // SỬA: Logic mới cho việc hủy đơn
-        // 1. Nếu đơn đã thanh toán (Momo/Đã xác nhận COD) -> Chuyển sang chờ hoàn tiền
         if ($order->payment_status == 'Đã thanh toán') {
             $order->status = 'Hủy Đơn Hàng';
             $order->payment_status = 'Chờ hoàn tiền';
             $order->save();
-            toastr()->success('Đơn hàng đã được hủy. Khách hàng sẽ cần xác nhận đã nhận lại tiền.');
-        } else { // 2. Nếu đơn chưa thanh toán (COD chờ TT/Chờ xử lý) -> Hủy luôn và trả kho
+            toastr()->success('Đơn hàng đã được hủy. Vui lòng tiến hành hoàn tiền cho khách hàng.');
+        } else {
             DB::transaction(function () use ($order) {
                 $order->status = 'Hủy Đơn Hàng';
                 $order->payment_status = 'Đã hủy';
                 $order->save();
+
                 foreach ($order->orderItems as $item) {
-                    ProductWarehouseStock::where('product_id', $item->productID)
+                    $stockEntry = ProductWarehouseStock::where('product_id', $item->productID)
                         ->where('warehouse_id', $item->warehouse_id_at_sale)
                         ->where('batch_identifier', $item->batch_identifier_at_sale)
-                        ->increment('quantity', $item->quantity);
+                        ->first();
+                    if ($stockEntry) {
+                        $stockEntry->quantity += $item->quantity;
+                        $stockEntry->save();
+                    }
                     $item->productInstances()->delete();
                 }
             });
             toastr()->success('Đơn hàng đã được hủy thành công và hàng đã được trả về kho.');
         }
+
         return redirect()->back();
     }
 
@@ -346,22 +352,58 @@ class AdminController extends Controller
         return redirect()->back();
     }
 
-    public function confirmPayment($id)
+    public function confirmRefund($id)
     {
         $order = Order::find($id);
+
         if (!$order) {
             toastr()->error('Đơn hàng không tồn tại!');
             return redirect()->back();
         }
 
-        // Chỉ xác nhận cho đơn COD đang ở trạng thái 'Chờ Xử Lý' và 'Chưa thanh toán'
-        if ($order->payment_method == 'Tiền mặt' && $order->status == 'Chờ Xử Lý' && $order->payment_status == 'Chưa thanh toán') {
-            $order->payment_status = 'Đã thanh toán'; // Chỉ cập nhật trạng thái thanh toán
+        if ($order->payment_status !== 'Chờ hoàn tiền') {
+            toastr()->error('Không thể thực hiện hành động này cho đơn hàng.');
+            return redirect()->back();
+        }
+
+        DB::transaction(function () use ($order) {
+            $order->payment_status = 'Đã hoàn tiền';
             $order->save();
-            toastr()->success('Đã xác nhận thanh toán cho đơn hàng COD thành công!');
+
+            foreach ($order->orderItems as $item) {
+                $stockEntry = ProductWarehouseStock::where('product_id', $item->productID)
+                    ->where('warehouse_id', $item->warehouse_id_at_sale)
+                    ->where('batch_identifier', $item->batch_identifier_at_sale)
+                    ->first();
+                if ($stockEntry) {
+                    $stockEntry->quantity += $item->quantity;
+                    $stockEntry->save();
+                }
+                $item->productInstances()->delete();
+            }
+        });
+
+        toastr()->success('Đã xác nhận hoàn tiền thành công. Hàng đã được trả về kho.');
+        return redirect()->back();
+    }
+
+    public function confirmPayment($id)
+    {
+        $order = Order::find($id);
+
+        if (!$order) {
+            toastr()->error('Đơn hàng không tồn tại!');
+            return redirect()->back();
+        }
+
+        if ($order->payment_method == 'Tiền mặt' && $order->payment_status == 'Chưa thanh toán') {
+            $order->payment_status = 'Đã thanh toán';
+            $order->save();
+            toastr()->success('Đã xác nhận thanh toán cho đơn hàng thành công!');
         } else {
             toastr()->error('Không thể thực hiện hành động này cho đơn hàng.');
         }
+
         return redirect()->back();
     }
 

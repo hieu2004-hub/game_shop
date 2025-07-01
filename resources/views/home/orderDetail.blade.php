@@ -117,19 +117,8 @@
 
             @if ($order->status == 'Đã Xác Nhận')
                 <a href="{{ route('user.confirmReceived', $order->id) }}" class="btn btn-success"
-                onclick="confirmation(event, 'Bạn chắc chắn đã nhận được hàng?', 'Chỉ bấm xác nhận nếu bạn đã nhận được hàng!')">
+                onclick="confirmation(event, 'Bạn chắc chắn đã nhận được hàng?', 'Chỉ bấm xác nhận nếu bạn đã nhận được hàng! Cửa hàng sẽ không chịu trách nhiệm nếu có xảy ra vấn đề ngoài ý muốn.')">
                 <i class="fas fa-check-circle"></i> Đã Nhận Được Hàng
-                </a>
-            @endif
-
-            <!-- THÊM MỚI: NÚT XÁC NHẬN HOÀN TIỀN CỦA KHÁCH HÀNG -->
-            @if ($order->payment_status == 'Chờ hoàn tiền')
-                <div class="refund-notice">
-                    <p>Cửa hàng đã xử lý yêu cầu hủy và đang thực hiện hoàn tiền cho bạn. Vui lòng bấm xác nhận khi bạn đã nhận được tiền.</p>
-                </div>
-                <a href="{{ route('user.confirmRefundReceived', $order->id) }}" class="btn btn-primary"
-                onclick="confirmation(event, 'Bạn chắc chắn đã nhận được tiền hoàn?', 'Hành động này sẽ hoàn tất quy trình hủy đơn hàng.')">
-                <i class="fas fa-hand-holding-usd"></i> Tôi đã nhận được tiền hoàn
                 </a>
             @endif
         </div>

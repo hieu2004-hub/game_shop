@@ -130,7 +130,7 @@
           <div class="col-12">
               <div class="card z-index-2 ">
                   <div class="card-header p-3">
-                      <h6 class="mb-0">Doanh thu 7 ngày qua (chỉ tính đơn đã hoàn thành)</h6>
+                      <h6 class="mb-0">Doanh thu 7 ngày qua</h6>
                   </div>
                   <div class="card-body p-3">
                       <div class="chart">

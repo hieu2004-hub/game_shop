@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Order;
+use App\Models\ProductWarehouseStock;
+use App\Models\Cart; // Thêm dòng này để sử dụng Cart model
+use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -106,100 +109,85 @@ class PaymentController extends Controller
         return json_decode($resultJson, true);
     }
 
-    // Hàm handleMomoCallback giữ nguyên như cũ, không cần thay đổi
+    /**
+     * Xử lý callback từ Momo sau khi người dùng thanh toán.
+     */
     public function handleMomoCallback(Request $request)
     {
         Log::info('Momo Callback Received:', $request->all());
 
+        // --- BƯỚC 1: XÁC THỰC CHỮ KÝ ---
         $secretKey = env('MOMO_SECRET_KEY', 'at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa');
         $signature = $request->input('signature');
-
-        // Lấy chính xác các trường mà Momo gửi về để tạo chữ ký
-        $partnerCode = $request->input('partnerCode');
-        $orderId = $request->input('orderId');
-        $requestId = $request->input('requestId');
-        $amount = $request->input('amount');
-        $orderInfo = $request->input('orderInfo');
-        $orderType = $request->input('orderType');
-        $transId = $request->input('transId');
-        $resultCode = $request->input('resultCode');
-        $message = $request->input('message');
-        $payType = $request->input('payType');
-        $responseTime = $request->input('responseTime');
-        $extraData = $request->input('extraData'); // Dù là null/rỗng cũng phải có
-
-        // Xây dựng chuỗi rawHash THEO ĐÚNG THỨ TỰ ALPHABET của các key Momo gửi về
         $rawHash = "accessKey=" . env('MOMO_ACCESS_KEY', 'klm05TvNBzhg7h7j') .
-            "&amount=" . $amount .
-            "&extraData=" . $extraData .
-            "&message=" . $message .
-            "&orderId=" . $orderId .
-            "&orderInfo=" . $orderInfo .
-            "&orderType=" . $orderType .
-            "&partnerCode=" . $partnerCode .
-            "&payType=" . $payType .
-            "&requestId=" . $requestId .
-            "&responseTime=" . $responseTime .
-            "&resultCode=" . $resultCode .
-            "&transId=" . $transId;
+            "&amount=" . $request->input('amount') .
+            "&extraData=" . $request->input('extraData') .
+            "&message=" . $request->input('message') .
+            "&orderId=" . $request->input('orderId') .
+            "&orderInfo=" . $request->input('orderInfo') .
+            "&orderType=" . $request->input('orderType') .
+            "&partnerCode=" . $request->input('partnerCode') .
+            "&payType=" . $request->input('payType') .
+            "&requestId=" . $request->input('requestId') .
+            "&responseTime=" . $request->input('responseTime') .
+            "&resultCode=" . $request->input('resultCode') .
+            "&transId=" . $request->input('transId');
 
-        // Tạo chữ ký dự kiến
         $expectedSignature = hash_hmac("sha256", $rawHash, $secretKey);
-
-        Log::info('CALLBACK Raw Hash String for Verification:', ['string' => $rawHash]);
-        Log::info('CALLBACK Signature from Momo:', ['signature' => $signature]);
-        Log::info('CALLBACK Expected Signature on our side:', ['signature' => $expectedSignature]);
 
         if ($signature !== $expectedSignature) {
             Log::error('Momo Callback: Invalid signature');
-            // Thử lại với một rawHash khác mà không có accessKey (một số tài liệu cũ yêu cầu vậy)
-            // Đây là bước dự phòng cuối cùng
-            $rawHashV2 = "amount=" . $amount .
-                "&extraData=" . $extraData .
-                "&message=" . $message .
-                "&orderId=" . $orderId .
-                "&orderInfo=" . $orderInfo .
-                "&orderType=" . $orderType .
-                "&partnerCode=" . $partnerCode .
-                "&payType=" . $payType .
-                "&requestId=" . $requestId .
-                "&responseTime=" . $responseTime .
-                "&resultCode=" . $resultCode .
-                "&transId=" . $transId;
-            $expectedSignatureV2 = hash_hmac("sha256", $rawHashV2, $secretKey);
-            if ($signature !== $expectedSignatureV2) {
-                return redirect()->route('checkout')->with('error', 'Giao dịch không hợp lệ. Chữ ký không khớp.');
-            }
+            return redirect()->route('checkout')->with('error', 'Giao dịch không hợp lệ. Chữ ký không khớp.');
         }
 
+        // --- BƯỚC 2: TÌM ĐƠN HÀNG VÀ KIỂM TRA ---
         $resultCode = $request->input('resultCode');
         $momoOrderId = $request->input('orderId');
-
-        $order = Order::where('momo_order_id', $momoOrderId)->first();
+        $order = Order::with('orderItems')->where('momo_order_id', $momoOrderId)->first();
 
         if (!$order) {
-            Log::error("Momo Callback: Order not found with momo_order_id: " . $momoOrderId);
-            return; // Dừng lại nếu không tìm thấy đơn hàng
+            return redirect()->route('checkout')->with('error', 'Không tìm thấy đơn hàng tương ứng.');
+        }
+        if ($order->status !== 'Chờ Thanh Toán') {
+            return redirect()->route($order->payment_status === 'Đã thanh toán' ? 'thankYou' : 'checkout');
         }
 
-        // Nếu một trong hai chữ ký khớp, xử lý kết quả
+        // --- BƯỚC 3: XỬ LÝ KẾT QUẢ ---
         if ($resultCode == '0') {
-            $order = Order::where('momo_order_id', $orderId)->first();
-            if ($order && $order->status == 'Chờ Thanh Toán') {
+            // --- THANH TOÁN THÀNH CÔNG ---
+            DB::transaction(function () use ($request, $order) {
                 $order->status = 'Chờ Xử Lý';
-                $order->payment_status = 'Đã thanh toán'; // *** SỬA Ở ĐÂY ***
-                $order->momo_trans_id = $transId;
+                $order->payment_status = 'Đã thanh toán';
+                $order->momo_trans_id = $request->input('transId');
                 $order->save();
-            }
+
+                $productIdsInOrder = $order->orderItems->pluck('productID')->toArray();
+                Cart::where('userID', $order->userID)->whereIn('productID', $productIdsInOrder)->delete();
+            });
+
+            Log::info("Momo Payment Success for Order ID: " . $order->id);
             return redirect()->route('thankYou');
         } else {
-            $order = Order::where('momo_order_id', $orderId)->first();
-            if ($order && $order->status == 'Chờ Thanh Toán') {
-                $order->status = 'Thanh toán thất bại';
-                $order->payment_status = 'Thanh toán thất bại'; // *** SỬA Ở ĐÂY ***
-                $order->save();
-            }
-            return redirect()->route('checkout')->with('error', 'Thanh toán thất bại: ' . $message);
+            // --- THANH TOÁN THẤT BẠI HOẶC BỊ HỦY ---
+            Log::warning("Momo Payment Failed/Cancelled for Order ID: " . $order->id . ". ResultCode: " . $resultCode);
+
+            DB::transaction(function () use ($order) {
+                // 1. Hoàn trả lại số lượng về kho
+                foreach ($order->orderItems as $item) {
+                    ProductWarehouseStock::where('product_id', $item->productID)
+                        ->where('warehouse_id', $item->warehouse_id_at_sale)
+                        ->where('batch_identifier', $item->batch_identifier_at_sale)
+                        ->increment('quantity', $item->quantity);
+                }
+
+                // 2. XÓA HOÀN TOÀN ĐƠN HÀNG
+                // Vì đã thiết lập "onDelete('cascade')" trong migration,
+                // việc xóa order sẽ tự động xóa các order_items và product_instances liên quan.
+                $order->delete();
+                Log::info("Order ID {$order->id} and related items have been deleted due to payment failure.");
+            });
+
+            return redirect()->route('checkout')->with('error', 'Thanh toán đã bị hủy hoặc thất bại. Vui lòng thử lại.');
         }
     }
 }

@@ -4,23 +4,6 @@
     @include('home.homecss')
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <link rel="stylesheet" href="{{ asset('./assets/css/myCart.css') }}">
-    <style>
-        .product-item, .product-list-headers {
-            display: grid;
-            grid-template-columns: 50px 1fr 120px 120px 150px;
-            align-items: center;
-            gap: 15px;
-            padding: 10px 0;
-            border-bottom: 1px solid #eee;
-        }
-        .product-list-headers { font-weight: bold; border-bottom: 2px solid #333; }
-        .checkbox-col { text-align: center; }
-        .product-details { display: grid; grid-template-columns: 80px 1fr; align-items: center; gap: 15px;}
-        .quantity-price-total { display: contents; }
-        .quantity-control, .price, .item-total, .header-col { text-align: center; }
-        .product-details .info { text-align: left;}
-        .checkout-btn[disabled] { background-color: #ccc; cursor: not-allowed; }
-    </style>
 </head>
 <body>
 

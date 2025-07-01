@@ -124,6 +124,9 @@ Route::get('/my-orders/{id}', [OrderController::class, 'show'])->name('order.det
     ->middleware('auth');
 Route::get('/user/cancel-order/{id}', [HomeController::class, 'cancelOrderByUser'])->name('user.cancelOrder')
     ->middleware(['auth']);
+// THÊM ROUTE MỚI NÀY
+Route::get('/user/confirm-refund-received/{id}', [HomeController::class, 'confirmRefundReceived'])->name('user.confirmRefundReceived')
+    ->middleware(['auth']);
 Route::get('/user/confirm-received/{id}', [HomeController::class, 'confirmReceivedByUser'])->name('user.confirmReceived')
     ->middleware(['auth']);
 

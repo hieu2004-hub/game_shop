@@ -3,8 +3,6 @@
 <head>
     @include('home.homecss')
     <link rel="stylesheet" href="{{ asset('./assets/css/checkout.css') }}">
-    <style>
-    </style>
 </head>
 <body>
 
@@ -15,30 +13,30 @@
   <main>
     <div class="checkout-wrapper">
         <div class="checkout-container">
-            {{-- Cột trái: Thông tin địa chỉ, giao hàng, thanh toán --}}
             <div class="checkout-left">
                 <div class="checkout-header">
                     <h1 class="logo">Game Shop</h1>
                     <a href="{{ route('myCart') }}" class="continue-shopping">← Quay lại giỏ hàng</a>
                 </div>
 
-                {{-- Phần thông tin khách hàng và form --}}
+                <!-- THÊM MỚI: Khu vực hiển thị thông báo lỗi -->
+                @if(session('error'))
+                    <div class="alert-error">
+                        {{ session('error') }}
+                    </div>
+                @endif
+
                 <div class="checkout-section shipping-address">
                     <div class="section-content">
-                        <!-- SỬA: Đổi action của form sang route 'placeOrder' -->
+                        <!-- Form giữ nguyên như cũ -->
                         <form action="{{ route('placeOrder') }}" method="POST" id="checkout-form">
-                            @csrf
-
-                            <!-- ====================================================== -->
-                            <!-- THÊM CÁC INPUT ẨN ĐỂ GỬI ID SẢN PHẨM ĐÃ CHỌN -->
-                            <!-- ====================================================== -->
+                           <!-- ... Toàn bộ nội dung form của bạn giữ nguyên ... -->
+                           @csrf
                             @if(isset($cartItems))
                                 @foreach($cartItems as $item)
                                     <input type="hidden" name="selected_cart_item_ids[]" value="{{ $item->id }}">
                                 @endforeach
                             @endif
-                            <!-- ====================================================== -->
-
                             <div class="form-group">
                                 <label for="name">Họ và tên:</label>
                                 <input type="text" id="name" name="name"
@@ -91,8 +89,8 @@
                 </div>
             </div>
 
-            {{-- Cột phải: Tóm tắt đơn hàng --}}
             <div class="checkout-right">
+                <!-- Phần tóm tắt đơn hàng giữ nguyên -->
                 <div class="order-summary-box">
                     <h3>Hóa Đơn</h3>
                     @if(!isset($cartItems) || $cartItems->isEmpty())
@@ -110,7 +108,6 @@
                                 </div>
                             @endforeach
                         </div>
-
                         <div class="summary-totals">
                             <div class="total-row grand-total-row">
                                 <span>Tổng cộng: </span>

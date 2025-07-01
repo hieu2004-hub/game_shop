@@ -144,51 +144,83 @@
         </div>
 
         <!-- Order Actions Card -->
-        {{-- NEW: Chỉ hiển thị phần hành động nếu đơn hàng chưa hoàn tất hoặc chưa bị hủy --}}
-        @if ($order->status == 'Chờ Xử Lý' || $order->status == 'Đã Xác Nhận' || $order->payment_status == 'Chờ hoàn tiền' || ($order->payment_method == 'Tiền mặt' && $order->payment_status == 'Chưa thanh toán'))
         <div class="card shadow mb-4">
             <div class="card-header py-3">
                 <h6 class="m-0 font-weight-bold text-primary">Hành động Đơn hàng</h6>
             </div>
             <div class="card-body order-actions">
-                {{-- HÀNH ĐỘNG VỚI TRẠNG THÁI XỬ LÝ --}}
-                @if ($order->status == 'Chờ Xử Lý')
-                    <a href="{{ route('admin.confirmOrder', $order->id) }}" class="btn btn-success btn-icon-split"
-                       onclick="confirmation(event, 'Xác nhận đơn hàng này?', 'Đơn hàng sẽ được chuyển sang trạng thái đã xác nhận để chuẩn bị giao.')">
-                       <span class="icon text-white-50"><i class="fas fa-check"></i></span>
-                       <span class="text">Xác Nhận Đơn</span>
-                    </a>
-                    <a href="{{ route('admin.cancelOrder', $order->id) }}" class="btn btn-danger btn-icon-split"
-                       onclick="confirmation(event, 'Bạn chắc chắn muốn hủy đơn hàng này?', 'Hành động này không thể hoàn tác!')">
-                       <span class="icon text-white-50"><i class="fas fa-times"></i></span>
-                       <span class="text">Hủy Đơn Hàng</span>
-                    </a>
+
+                {{-- =================================================================== --}}
+                {{-- QUY TRÌNH CHO ĐƠN COD --}}
+                {{-- =================================================================== --}}
+                @if ($order->payment_method == 'Tiền mặt')
+
+                    {{-- Giai đoạn 1: Đơn đang chờ xử lý và chưa thanh toán --}}
+                    @if ($order->status == 'Chờ Xử Lý' && $order->payment_status == 'Chưa thanh toán')
+                        <a href="{{ route('admin.confirmPayment', $order->id) }}" class="btn btn-primary btn-icon-split"
+                        onclick="confirmation(event, 'Xác nhận đã nhận đủ tiền mặt?', 'Hành động này xác nhận bạn đã nhận tiền từ shipper cho đơn hàng này.')">
+                        <span class="icon text-white-50"><i class="fas fa-cash-register"></i></span>
+                        <span class="text">Xác nhận đã nhận tiền (COD)</span>
+                        </a>
+                        <a href="{{ route('admin.cancelOrder', $order->id) }}" class="btn btn-danger btn-icon-split"
+                        onclick="confirmation(event, 'Bạn chắc chắn muốn hủy đơn hàng này?', 'Đơn hàng chưa thanh toán sẽ được hủy ngay và hàng được trả về kho.')">
+                        <span class="icon text-white-50"><i class="fas fa-times"></i></span>
+                        <span class="text">Hủy Đơn Hàng</span>
+                        </a>
+                    @endif
+
+                    {{-- Giai đoạn 2: Đã nhận tiền nhưng chưa xác nhận giao hàng --}}
+                    @if ($order->status == 'Chờ Xử Lý' && $order->payment_status == 'Đã thanh toán')
+                        <a href="{{ route('admin.confirmOrder', $order->id) }}" class="btn btn-success btn-icon-split"
+                            onclick="confirmation(event, 'Xác nhận đơn hàng này?', 'Đơn hàng sẽ được chuyển sang trạng thái đã xác nhận để chuẩn bị giao.')">
+                            <span class="icon text-white-50"><i class="fas fa-check"></i></span>
+                            <span class="text">Xác Nhận Đơn</span>
+                            </a>
+                        {{-- SỬA: Cho phép hủy đơn ở giai đoạn này --}}
+                        <a href="{{ route('admin.cancelOrder', $order->id) }}" class="btn btn-danger btn-icon-split"
+                        onclick="confirmation(event, 'Bạn chắc chắn muốn hủy đơn hàng này?', 'Đơn hàng đã được thanh toán. Hủy đơn sẽ chuyển sang trạng thái Chờ Hoàn Tiền.')">
+                        <span class="icon text-white-50"><i class="fas fa-times"></i></span>
+                        <span class="text">Hủy Đơn Hàng</span>
+                        </a>
+                    @endif
+
                 @endif
 
-                {{-- HÀNH ĐỘNG VỚI TRẠNG THÁI THANH TOÁN --}}
-
-                {{-- 1. Nút xác nhận đã nhận tiền cho đơn COD --}}
-                @if ($order->payment_method == 'Tiền mặt' && $order->payment_status == 'Chưa thanh toán' && $order->status != 'Hủy Đơn Hàng')
-                    <a href="{{ route('admin.confirmPayment', $order->id) }}" class="btn btn-primary btn-icon-split"
-                       onclick="confirmation(event, 'Xác nhận đã nhận đủ tiền mặt?', 'Hành động này xác nhận bạn đã nhận tiền từ shipper cho đơn hàng này.')">
-                       <span class="icon text-white-50"><i class="fas fa-cash-register"></i></span>
-                       <span class="text">Xác nhận đã nhận tiền (COD)</span>
-                    </a>
+                {{-- =================================================================== --}}
+                {{-- QUY TRÌNH CHO ĐƠN THANH TOÁN TRƯỚC (Momo) --}}
+                {{-- =================================================================== --}}
+                @if ($order->payment_method != 'Tiền mặt')
+                    @if ($order->status == 'Chờ Xử Lý')
+                        <a href="{{ route('admin.confirmOrder', $order->id) }}" class="btn btn-success btn-icon-split"
+                            onclick="confirmation(event, 'Xác nhận đơn hàng này?', 'Đơn hàng sẽ được chuyển sang trạng thái đã xác nhận để chuẩn bị giao.')">
+                            <span class="icon text-white-50"><i class="fas fa-check"></i></span>
+                            <span class="text">Xác Nhận Đơn</span>
+                            </a>
+                        <a href="{{ route('admin.cancelOrder', $order->id) }}" class="btn btn-danger btn-icon-split"
+                        onclick="confirmation(event, 'Bạn chắc chắn muốn hủy đơn hàng này?', 'Đơn hàng đã được thanh toán. Hủy đơn sẽ chuyển sang trạng thái Chờ Hoàn Tiền.')">
+                        <span class="icon text-white-50"><i class="fas fa-times"></i></span>
+                        <span class="text">Hủy Đơn Hàng</span>
+                        </a>
+                    @endif
                 @endif
 
-                {{-- 2. Nút xác nhận đã hoàn tiền thủ công --}}
+                {{-- =================================================================== --}}
+                {{-- THÔNG BÁO CHUNG CHO CÁC TRẠNG THÁI KHÁC --}}
+                {{-- =================================================================== --}}
                 @if ($order->payment_status == 'Chờ hoàn tiền')
-                    <a href="{{ route('admin.confirmRefund', $order->id) }}" class="btn btn-info btn-icon-split"
-                       onclick="confirmation(event, 'Xác nhận đã hoàn tiền cho khách?', 'Chỉ bấm khi bạn đã thực hiện hoàn tiền thành công qua Momo Business hoặc chuyển khoản.')">
-                       <span class="icon text-white-50"><i class="fas fa-undo-alt"></i></span>
-                       <span class="text">Xác Nhận Đã Hoàn Tiền</span>
-                    </a>
+                    <div class="alert alert-info" role="alert">
+                        <i class="fas fa-info-circle"></i> Đang chờ khách hàng xác nhận đã nhận được tiền hoàn.
+                    </div>
                 @endif
+
+                @if ($order->status == 'Đã Xác Nhận' || $order->status == 'Đã Nhận Được Hàng' || $order->status == 'Hủy Đơn Hàng')
+                    <div class="alert alert-secondary" role="alert">
+                        <i class="fas fa-lock"></i> Đơn hàng đã ở trạng thái cuối, không thể thực hiện thêm hành động.
+                    </div>
+                @endif
+
             </div>
         </div>
-        @endif {{-- END NEW: Chỉ hiển thị phần hành động nếu đơn hàng chưa hoàn tất hoặc chưa bị hủy --}}
-        <br>
-    </div>
   </main>
 
   @include('admin.adminscript')

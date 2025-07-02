@@ -125,17 +125,50 @@
         </div>
       </div>
 
-      <!-- SỬA: Biểu đồ doanh thu 7 ngày qua -->
+      <!-- SỬA: Hàng chứa Biểu đồ và Top sản phẩm bán chạy -->
       <div class="row mt-4">
-          <div class="col-12">
-              <div class="card z-index-2 ">
+          <!-- Cột Biểu đồ -->
+          <div class="col-lg-7 mb-lg-0 mb-4">
+              <div class="card z-index-2">
                   <div class="card-header p-3">
-                      <h6 class="mb-0">Doanh thu 7 ngày qua</h6>
+                      <h6 class="mb-0">Doanh thu 7 ngày qua (chỉ tính đơn đã hoàn thành)</h6>
                   </div>
                   <div class="card-body p-3">
                       <div class="chart">
                           <canvas id="revenueChart7Days" class="chart-canvas" height="300"></canvas>
                       </div>
+                  </div>
+              </div>
+          </div>
+
+          <!-- Cột Top Sản phẩm bán chạy -->
+          <div class="col-lg-5">
+              <div class="card">
+                  <div class="card-header pb-0 p-3">
+                      <h6 class="mb-0">Top 5 sản phẩm bán chạy (Tháng {{ date('m') }})</h6>
+                  </div>
+                  <div class="card-body p-3">
+                        @if($topSellingProducts->isEmpty())
+                            <p class="text-center text-muted">Chưa có dữ liệu bán hàng trong tháng này.</p>
+                        @else
+                            <ul class="list-group">
+                                @foreach($topSellingProducts as $item)
+                                <li class="list-group-item border-0 d-flex justify-content-between ps-0 mb-2 border-radius-lg">
+                                    <div class="d-flex align-items-center">
+                                        <div class="icon icon-shape icon-sm me-3 bg-gradient-dark shadow text-center">
+                                            <i class="ni ni-tag text-white opacity-10"></i>
+                                        </div>
+                                        <div class="d-flex flex-column">
+                                            <h6 class="mb-1 text-dark text-sm">{{ Str::limit($item->product->productName, 30) }}</h6>
+                                            <span class="text-xs">Đã bán:
+                                                <span class="font-weight-bold">{{ $item->total_quantity_sold }}</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </li>
+                                @endforeach
+                            </ul>
+                        @endif
                   </div>
               </div>
           </div>

@@ -237,8 +237,8 @@ class HomeController extends Controller
     }
 
     /**
-     * Xử lý việc đặt hàng từ trang checkout.
-     * Đây là phương thức cốt lõi cần được sửa đổi.
+     * SỬA LẠI HOÀN TOÀN: Xử lý việc đặt hàng từ trang checkout.
+     * Đảm bảo cả đơn COD và Momo đều tạo mã bảo hành ngay từ đầu.
      */
     public function confirmOrder(Request $request)
     {
@@ -264,9 +264,11 @@ class HomeController extends Controller
         });
 
         if ($request->payment_method == 'Thẻ ngân hàng/Ví điện tử') {
+            // --- XỬ LÝ THANH TOÁN MOMO ---
             $order = null;
             try {
-                DB::transaction(function () use ($request, $grandTotal, $selectedCartItems, &$order, $user) {
+                // Toàn bộ logic cho Momo đã đúng, giữ nguyên
+                DB::transaction(function () use ($request, $selectedCartItems, &$order, $user) {
                     $momoOrderId = 'GAMESHOP' . time() . '_' . $user->id;
                     $order = Order::create([
                         'userID' => $user->id,
@@ -279,25 +281,57 @@ class HomeController extends Controller
                         'payment_status' => 'Chưa thanh toán',
                         'momo_order_id' => $momoOrderId,
                     ]);
-
                     foreach ($selectedCartItems as $cartItem) {
-                        $stockEntry = ProductWarehouseStock::where('product_id', $cartItem->productID)
-                            ->where('quantity', '>=', $cartItem->quantity)
-                            ->orderBy('received_date', 'asc')->first();
-
+                        $stockEntry = ProductWarehouseStock::where('product_id', $cartItem->productID)->where('quantity', '>=', $cartItem->quantity)->orderBy('received_date', 'asc')->first();
                         if (!$stockEntry)
                             throw new \Exception('Hết hàng cho sản phẩm: ' . $cartItem->product->productName);
+                        $orderItem = $order->orderItems()->create(['productID' => $cartItem->productID, 'quantity' => $cartItem->quantity, 'price' => $cartItem->product->productPrice, 'import_price_at_sale' => $stockEntry->import_price, 'batch_identifier_at_sale' => $stockEntry->batch_identifier, 'warehouse_id_at_sale' => $stockEntry->warehouse_id,]);
+                        $stockEntry->decrement('quantity', $cartItem->quantity);
+                        if ($cartItem->product->is_warrantable) {
+                            for ($i = 0; $i < $cartItem->quantity; $i++) {
+                                ProductInstance::create(['product_id' => $cartItem->productID, 'order_item_id' => $orderItem->id, 'user_id' => $user->id, 'serial_number' => 'SN-' . $cartItem->productID . '-' . uniqid(), 'purchase_date' => now(), 'warranty_duration_months' => $cartItem->product->default_warranty_months, 'warranty_status' => 'pending_activation', 'notes' => 'Đơn hàng #' . $order->id,]);
+                            }
+                        }
+                    }
+                });
+                if (!$order)
+                    throw new \Exception("Không thể tạo đơn hàng.");
+                $paymentController = new PaymentController();
+                $momoResponse = $paymentController->createMomoPaymentRequest($order->momo_order_id, $grandTotal, $order->id);
+                if (isset($momoResponse['payUrl'])) {
+                    return redirect()->away($momoResponse['payUrl']);
+                } else {
+                    throw new \Exception($momoResponse['message'] ?? 'Lỗi khi tạo yêu cầu thanh toán Momo.');
+                }
+            } catch (\Exception $e) {
+                Log::error("Payment Creation Failed: " . $e->getMessage());
+                return redirect()->route('checkout')->with('error', 'Đã xảy ra lỗi. Vui lòng thử lại.');
+            }
+        } else {
+            // --- XỬ LÝ THANH TOÁN TIỀN MẶT (COD) ---
+            try {
+                DB::transaction(function () use ($request, $selectedCartItems, $user) {
+                    $order = Order::create([
+                        'userID' => $user->id,
+                        'name' => $request->name,
+                        'phone' => $request->phone,
+                        'address' => $request->address,
+                        'delivery_method' => $request->delivery_method,
+                        'payment_method' => $request->payment_method,
+                        'status' => 'Chờ Xử Lý',
+                        'payment_status' => 'Chưa thanh toán'
+                    ]);
 
-                        $orderItem = $order->orderItems()->create([
-                            'productID' => $cartItem->productID,
-                            'quantity' => $cartItem->quantity,
-                            'price' => $cartItem->product->productPrice,
-                            'import_price_at_sale' => $stockEntry->import_price,
-                            'batch_identifier_at_sale' => $stockEntry->batch_identifier,
-                            'warehouse_id_at_sale' => $stockEntry->warehouse_id,
-                        ]);
+                    foreach ($selectedCartItems as $cartItem) {
+                        $stockEntry = ProductWarehouseStock::where('product_id', $cartItem->productID)->where('quantity', '>=', $cartItem->quantity)->orderBy('received_date', 'asc')->first();
+                        if (!$stockEntry)
+                            throw new \Exception('Hết hàng cho sản phẩm: ' . $cartItem->product->productName);
+                        $orderItem = $order->orderItems()->create(['productID' => $cartItem->productID, 'quantity' => $cartItem->quantity, 'price' => $cartItem->product->productPrice, 'import_price_at_sale' => $stockEntry->import_price, 'batch_identifier_at_sale' => $stockEntry->batch_identifier, 'warehouse_id_at_sale' => $stockEntry->warehouse_id,]);
                         $stockEntry->decrement('quantity', $cartItem->quantity);
 
+                        // ================================================================
+                        // SỬA: BỔ SUNG KHỐI TẠO BẢO HÀNH CHO ĐƠN COD
+                        // ================================================================
                         if ($cartItem->product->is_warrantable) {
                             for ($i = 0; $i < $cartItem->quantity; $i++) {
                                 ProductInstance::create([
@@ -312,37 +346,7 @@ class HomeController extends Controller
                                 ]);
                             }
                         }
-                    }
-                });
-
-                if (!$order)
-                    throw new \Exception("Không thể tạo đơn hàng.");
-
-                $paymentController = new PaymentController();
-                $momoResponse = $paymentController->createMomoPaymentRequest($order->momo_order_id, $grandTotal, $order->id);
-
-                if (isset($momoResponse['payUrl'])) {
-                    // *** DÒNG XÓA GIỎ HÀNG ĐÃ BỊ XÓA KHỎI ĐÂY ***
-                    return redirect()->away($momoResponse['payUrl']);
-                } else {
-                    throw new \Exception($momoResponse['message'] ?? 'Lỗi khi tạo yêu cầu thanh toán Momo.');
-                }
-
-            } catch (\Exception $e) {
-                Log::error("Payment Creation Failed: " . $e->getMessage());
-                return redirect()->route('checkout')->with('error', 'Đã xảy ra lỗi. Vui lòng thử lại.');
-            }
-        } else {
-            // Xử lý COD giữ nguyên
-            try {
-                DB::transaction(function () use ($request, $selectedCartItems, $user) {
-                    $order = Order::create(['userID' => $user->id, 'name' => $request->name, 'phone' => $request->phone, 'address' => $request->address, 'delivery_method' => $request->delivery_method, 'payment_method' => $request->payment_method, 'status' => 'Chờ Xử Lý', 'payment_status' => 'Chưa thanh toán']);
-                    foreach ($selectedCartItems as $cartItem) {
-                        $stockEntry = ProductWarehouseStock::where('product_id', $cartItem->productID)->where('quantity', '>=', $cartItem->quantity)->orderBy('received_date', 'asc')->first();
-                        if (!$stockEntry)
-                            throw new \Exception('Hết hàng cho sản phẩm: ' . $cartItem->product->productName);
-                        $order->orderItems()->create(['productID' => $cartItem->productID, 'quantity' => $cartItem->quantity, 'price' => $cartItem->product->productPrice, 'import_price_at_sale' => $stockEntry->import_price, 'batch_identifier_at_sale' => $stockEntry->batch_identifier, 'warehouse_id_at_sale' => $stockEntry->warehouse_id,]);
-                        $stockEntry->decrement('quantity', $cartItem->quantity);
+                        // ================================================================
                     }
                     Cart::whereIn('id', $request->selected_cart_item_ids)->where('userID', $user->id)->delete();
                 });

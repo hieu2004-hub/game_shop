@@ -89,6 +89,24 @@ class AdminController extends Controller
             $chartValues[] = $chartData->get($dateString, 0); // Lấy doanh thu của ngày, nếu không có thì mặc định là 0
         }
 
+
+
+        // =====================================================================
+        // 4. LẤY TOP SẢN PHẨM BÁN CHẠY TRONG THÁNG
+        // =====================================================================
+        $topSellingProducts = OrderItem::whereHas('order', function ($query) {
+            // Chỉ tính các đơn hàng đã hoàn thành trong tháng này
+            $query->where('status', 'Đã Nhận Được Hàng')
+                ->whereMonth('updated_at', Carbon::now()->month)
+                ->whereYear('updated_at', Carbon::now()->year);
+        })
+            ->select('productID', DB::raw('SUM(quantity) as total_quantity_sold')) // Tính tổng số lượng bán được
+            ->groupBy('productID') // Nhóm theo sản phẩm
+            ->orderBy('total_quantity_sold', 'desc') // Sắp xếp theo số lượng bán giảm dần
+            ->with('product') // Tải sẵn thông tin sản phẩm (tên, ảnh, ...)
+            ->take(5) // Lấy 5 sản phẩm đầu tiên
+            ->get();
+
         // =====================================================================
         // 4. TRUYỀN DỮ LIỆU SANG VIEW
         // =====================================================================
@@ -99,7 +117,8 @@ class AdminController extends Controller
             'monthlyRevenue',
             'monthlyProfit',
             'chartLabels',
-            'chartValues'
+            'chartValues',
+            'topSellingProducts' // Truyền biến mới sang view
         ));
     }
     public function profile()
@@ -286,7 +305,12 @@ class AdminController extends Controller
 
     public function showOrderDetail($id)
     {
-        $order = Order::with(['orderItems.product', 'orderItems.warehouse'])->find($id);
+        // SỬA: Thêm eager loading cho productInstances
+        $order = Order::with([
+            'orderItems.product',
+            'orderItems.warehouse',
+            'orderItems.productInstances' // Tải sẵn thông tin bảo hành
+        ])->find($id);
 
         if (!$order) {
             toastr()->timeOut(5000)->closeButton()->addError('Đơn hàng không tồn tại hoặc đã bị xóa!');

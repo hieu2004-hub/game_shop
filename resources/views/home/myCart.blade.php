@@ -82,7 +82,7 @@
                     <span>Đã chọn: <span id="summary-item-count">0</span> sản phẩm</span>
                 </div>
                 <div class="total-cost-line">
-                    <span>Tổng tạm tính: </span>
+                    <span>Tổng: </span>
                     <span class="total-cost-value grand-total" id="summary-grand-total">0 VNĐ</span>
                 </div>
                 <button type="submit" class="checkout-btn" id="checkout-button" disabled>Thanh toán</button>

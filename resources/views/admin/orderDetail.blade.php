@@ -130,6 +130,26 @@
                                     <td>{{ $item->quantity }}</td>
                                     <td>{{ number_format($totalPricePerItem, 0, ',', '.') }} VNĐ</td>
                                 </tr>
+
+                                <!-- ====================================================== -->
+                                <!-- SỬA: XÓA BỎ ĐIỀU KIỆN IF BÊN NGOÀI -->
+                                <!-- ====================================================== -->
+                                {{-- Chỉ hiển thị hàng này nếu sản phẩm có các bản ghi bảo hành được tạo ra --}}
+                                @if($item->productInstances->isNotEmpty())
+                                    <tr class="table-info">
+                                        <td colspan="6" class="text-start p-3">
+                                            <strong class="text-dark"><i class="fas fa-barcode"></i> Mã bảo hành (Serial Number):</strong>
+                                            <ul class="list-unstyled mb-0 mt-2">
+                                                @foreach($item->productInstances as $instance)
+                                                    <li class="mb-1">
+                                                        <code>{{ $instance->serial_number }}</code>
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        </td>
+                                    </tr>
+                                @endif
+                                <!-- ====================================================== -->
                             @endforeach
                         </tbody>
                         <tfoot>
